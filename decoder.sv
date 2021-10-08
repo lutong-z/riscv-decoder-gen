@@ -13,7 +13,7 @@ module decoder(
     output isaReg_t        rs2,
     output op2Type_t       op2Type,
     output isaReg_t        rd,
-    output wbType_t        wbType,
+    output logic           wbType,
     output logic           illigal,
     output logic           ecall,
     output logic           ebreak,
@@ -60,7 +60,7 @@ module decoder(
         uop             =  uop_t.NOP;
         op1Type         =  op1Type_t.X;
         op2Type         =  op2Type_t.X;
-        wbType          =  wbType_t.X;
+        wbType          =  1'b0;
         illigal         =  1'b0;
         ecall           =  1'b0;
         ebreak          =  1'b0;
@@ -68,393 +68,304 @@ module decoder(
         sret            =  1'b0;
         uret            =  1'b0;
         immType         =  immType_t.I;
-    /* Decode opcode */
-    switch (opcode) {
-    case OpcodeLui:
-        /* LUI */
-        decode_format_U(ctx);
-        gen_lui(env, ctx);
-        break;
-    case OpcodeAuipc:
-        /* AUIPC */
-        decode_format_U(ctx);
-        gen_auipc(env, ctx);
-        break;
-    case OpcodeJal:
-        /* JAL */
-        decode_format_UJ(ctx);
-        gen_jal(env, ctx);
-        break;
-    case OpcodeJalr:
-        /* Decode func3 */
-        switch (extract32(ctx->opcode, 0, 0)) {
-        case 0:
-            /* JALR */
-            decode_format_I(ctx);
-            gen_jalr(env, ctx);
-            break;
-        default:
-            kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-            break;
-        }
-        break;
-    case OpcodeBranch:
-        /* Decode func3 */
-        switch (extract32(ctx->opcode, 0, 0)) {
-        case 0:
-            /* BEQ */
-            decode_format_SB(ctx);
-            gen_beq(env, ctx);
-            break;
-        case 1:
-            /* BNE */
-            decode_format_SB(ctx);
-            gen_bne(env, ctx);
-            break;
-        case 4:
-            /* BLT */
-            decode_format_SB(ctx);
-            gen_blt(env, ctx);
-            break;
-        case 5:
-            /* BGE */
-            decode_format_SB(ctx);
-            gen_bge(env, ctx);
-            break;
-        case 6:
-            /* BLTU */
-            decode_format_SB(ctx);
-            gen_bltu(env, ctx);
-            break;
-        case 7:
-            /* BGEU */
-            decode_format_SB(ctx);
-            gen_bgeu(env, ctx);
-            break;
-        default:
-            kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-            break;
-        }
-        break;
-    case OpcodeLoad:
-        /* Decode func3 */
-        switch (extract32(ctx->opcode, 0, 0)) {
-        case 0:
-            /* SB */
-            decode_format_S(ctx);
-            gen_sb(env, ctx);
-            break;
-        case 1:
-            /* SH */
-            decode_format_S(ctx);
-            gen_sh(env, ctx);
-            break;
-        case 2:
-            /* SW */
-            decode_format_S(ctx);
-            gen_sw(env, ctx);
-            break;
-        case 4:
-            /* LBU */
-            decode_format_I(ctx);
-            gen_lbu(env, ctx);
-            break;
-        case 5:
-            /* LHU */
-            decode_format_I(ctx);
-            gen_lhu(env, ctx);
-            break;
-        default:
-            kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-            break;
-        }
-        break;
-    case OpcodeOpImm:
-        /* Decode func3 */
-        switch (extract32(ctx->opcode, 0, 0)) {
-        case 0:
-            /* ADDI */
-            decode_format_I(ctx);
-            gen_addi(env, ctx);
-            break;
-        case 2:
-            /* SLTI */
-            decode_format_I(ctx);
-            gen_slti(env, ctx);
-            break;
-        case 3:
-            /* SLTIU */
-            decode_format_I(ctx);
-            gen_sltiu(env, ctx);
-            break;
-        case 4:
-            /* XORI */
-            decode_format_I(ctx);
-            gen_xori(env, ctx);
-            break;
-        case 6:
-            /* ORI */
-            decode_format_I(ctx);
-            gen_ori(env, ctx);
-            break;
-        case 7:
-            /* ANDI */
-            decode_format_I(ctx);
-            gen_andi(env, ctx);
-            break;
-        case 1:
-            /* Decode func7 */
-            switch (extract32(ctx->opcode, 0, 0)) {
-            case 0:
-                /* SLLI */
-                decode_format_R(ctx);
-                gen_slli(env, ctx);
-                break;
-            default:
-                kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-                break;
-            }
-            break;
-        case 5:
-            /* Decode func7 */
-            switch (extract32(ctx->opcode, 0, 0)) {
-            case 0:
-                /* SRLI */
-                decode_format_R(ctx);
-                gen_srli(env, ctx);
-                break;
-            case 32:
-                /* SRAI */
-                decode_format_R(ctx);
-                gen_srai(env, ctx);
-                break;
-            default:
-                kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-                break;
-            }
-            break;
-        default:
-            kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-            break;
-        }
-        break;
-    case OpcodeOp:
-        /* Decode func3 */
-        switch (extract32(ctx->opcode, 0, 0)) {
-        case 0:
-            /* Decode func7 */
-            switch (extract32(ctx->opcode, 0, 0)) {
-            case 0:
-                /* ADD */
-                decode_format_R(ctx);
-                gen_add(env, ctx);
-                break;
-            case 32:
-                /* SUB */
-                decode_format_R(ctx);
-                gen_sub(env, ctx);
-                break;
-            default:
-                kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-                break;
-            }
-            break;
-        case 1:
-            /* Decode func7 */
-            switch (extract32(ctx->opcode, 0, 0)) {
-            case 0:
-                /* SLL */
-                decode_format_R(ctx);
-                gen_sll(env, ctx);
-                break;
-            default:
-                kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-                break;
-            }
-            break;
-        case 2:
-            /* Decode func7 */
-            switch (extract32(ctx->opcode, 0, 0)) {
-            case 0:
-                /* SLT */
-                decode_format_R(ctx);
-                gen_slt(env, ctx);
-                break;
-            default:
-                kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-                break;
-            }
-            break;
-        case 3:
-            /* Decode func7 */
-            switch (extract32(ctx->opcode, 0, 0)) {
-            case 0:
-                /* SLTU */
-                decode_format_R(ctx);
-                gen_sltu(env, ctx);
-                break;
-            default:
-                kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-                break;
-            }
-            break;
-        case 4:
-            /* Decode func7 */
-            switch (extract32(ctx->opcode, 0, 0)) {
-            case 0:
-                /* XOR */
-                decode_format_R(ctx);
-                gen_xor(env, ctx);
-                break;
-            default:
-                kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-                break;
-            }
-            break;
-        case 5:
-            /* Decode func7 */
-            switch (extract32(ctx->opcode, 0, 0)) {
-            case 0:
-                /* SRL */
-                decode_format_R(ctx);
-                gen_srl(env, ctx);
-                break;
-            case 32:
-                /* SRA */
-                decode_format_R(ctx);
-                gen_sra(env, ctx);
-                break;
-            default:
-                kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-                break;
-            }
-            break;
-        case 6:
-            /* Decode func7 */
-            switch (extract32(ctx->opcode, 0, 0)) {
-            case 0:
-                /* OR */
-                decode_format_R(ctx);
-                gen_or(env, ctx);
-                break;
-            default:
-                kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-                break;
-            }
-            break;
-        case 7:
-            /* Decode func7 */
-            switch (extract32(ctx->opcode, 0, 0)) {
-            case 0:
-                /* AND */
-                decode_format_R(ctx);
-                gen_and(env, ctx);
-                break;
-            default:
-                kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-                break;
-            }
-            break;
-        default:
-            kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-            break;
-        }
-        break;
-    case OpcodeMiscMem:
-        /* Decode FENCE2 */
-        switch (extract32(ctx->opcode, 0, 0)) {
-        case 0:
-            /* Decode FENCE3 */
-            switch (extract32(ctx->opcode, 0, 0)) {
-            case 0:
-                /* FENCE */
-                decode_format_R(ctx);
-                gen_fence(env, ctx);
-                break;
-            default:
-                kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-                break;
-            }
-            break;
-        case 32:
-            /* Decode FENCEI */
-            switch (extract32(ctx->opcode, 0, 0)) {
-            case 0:
-                /* FENCEI */
-                decode_format_R(ctx);
-                gen_fence_i(env, ctx);
-                break;
-            default:
-                kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-                break;
-            }
-            break;
-        default:
-            kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-            break;
-        }
-        break;
-    case OpcodeSystem:
-        /* Decode func3 */
-        switch (extract32(ctx->opcode, 0, 0)) {
-        case 0:
-            /* Decode FENCEI */
-            switch (extract32(ctx->opcode, 0, 0)) {
-            case 0:
-                /* ECALL */
-                decode_format_I(ctx);
-                gen_ecall(env, ctx);
-                break;
-            case 1:
-                /* EBREAK */
-                decode_format_I(ctx);
-                gen_ebreak(env, ctx);
-                break;
-            default:
-                kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-                break;
-            }
-            break;
-        case 1:
-            /* CSRRW */
-            decode_format_I(ctx);
-            gen_csrrw(env, ctx);
-            break;
-        case 2:
-            /* CSRRS */
-            decode_format_I(ctx);
-            gen_csrrs(env, ctx);
-            break;
-        case 3:
-            /* CSRRC */
-            decode_format_I(ctx);
-            gen_csrrc(env, ctx);
-            break;
-        case 5:
-            /* CSRRWI */
-            decode_format_I(ctx);
-            gen_csrrwi(env, ctx);
-            break;
-        case 6:
-            /* CSRRSI */
-            decode_format_I(ctx);
-            gen_csrrsi(env, ctx);
-            break;
-        case 7:
-            /* CSRRCI */
-            decode_format_I(ctx);
-            gen_csrrci(env, ctx);
-            break;
-        default:
-            kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-            break;
-        }
-        break;
-    default:
-        kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
-        break;
-    }
-}
+        /* Decode opcode */
+        case (opcode) 
+            /* LUI */
+            OpcodeLui : begin
+            end
+            /* AUIPC */
+            OpcodeAuipc : begin
+            end
+            /* JAL */
+            OpcodeJal : begin
+            end
+            OpcodeJalr : begin
+                /* Decode func3 */
+                case (func3)
+                    /* JALR */
+                    3'b000 : begin
+                    end
+                    default: begin
+                        illigal = 1'b1
+                    end
+                endcase
+            end
+            OpcodeBranch : begin
+                /* Decode func3 */
+                case (func3)
+                    /* BEQ */
+                    3'b000 : begin
+                    end
+                    /* BNE */
+                    3'b001 : begin
+                    end
+                    /* BLT */
+                    3'b100 : begin
+                    end
+                    /* BGE */
+                    3'b101 : begin
+                    end
+                    /* BLTU */
+                    3'b110 : begin
+                    end
+                    /* BGEU */
+                    3'b111 : begin
+                    end
+                    default: begin
+                        illigal = 1'b1
+                    end
+                endcase
+            end
+            OpcodeLoad : begin
+                /* Decode func3 */
+                case (func3)
+                    /* SB */
+                    3'b000 : begin
+                    end
+                    /* SH */
+                    3'b001 : begin
+                    end
+                    /* SW */
+                    3'b010 : begin
+                    end
+                    /* LBU */
+                    3'b100 : begin
+                    end
+                    /* LHU */
+                    3'b101 : begin
+                    end
+                    default: begin
+                        illigal = 1'b1
+                    end
+                endcase
+            end
+            OpcodeOpImm : begin
+                /* Decode func3 */
+                case (func3)
+                    /* ADDI */
+                    3'b000 : begin
+                    end
+                    /* SLTI */
+                    3'b010 : begin
+                    end
+                    /* SLTIU */
+                    3'b011 : begin
+                    end
+                    /* XORI */
+                    3'b100 : begin
+                    end
+                    /* ORI */
+                    3'b110 : begin
+                    end
+                    /* ANDI */
+                    3'b111 : begin
+                    end
+                    3'b001 : begin
+                        /* Decode func7 */
+                        case (func7)
+                            /* SLLI */
+                            7'd0 : begin
+                            end
+                            default: begin
+                                illigal = 1'b1
+                            end
+                        endcase
+                    end
+                    3'b101 : begin
+                        /* Decode func7 */
+                        case (func7)
+                            /* SRLI */
+                            7'd0 : begin
+                            end
+                            /* SRAI */
+                            7'd32 : begin
+                            end
+                            default: begin
+                                illigal = 1'b1
+                            end
+                        endcase
+                    end
+                    default: begin
+                        illigal = 1'b1
+                    end
+                endcase
+            end
+            OpcodeOp : begin
+                /* Decode func3 */
+                case (func3)
+                    3'b000 : begin
+                        /* Decode func7 */
+                        case (func7)
+                            /* ADD */
+                            7'd0 : begin
+                            end
+                            /* SUB */
+                            7'd32 : begin
+                            end
+                            default: begin
+                                illigal = 1'b1
+                            end
+                        endcase
+                    end
+                    3'b001 : begin
+                        /* Decode func7 */
+                        case (func7)
+                            /* SLL */
+                            7'd0 : begin
+                            end
+                            default: begin
+                                illigal = 1'b1
+                            end
+                        endcase
+                    end
+                    3'b010 : begin
+                        /* Decode func7 */
+                        case (func7)
+                            /* SLT */
+                            7'd0 : begin
+                            end
+                            default: begin
+                                illigal = 1'b1
+                            end
+                        endcase
+                    end
+                    3'b011 : begin
+                        /* Decode func7 */
+                        case (func7)
+                            /* SLTU */
+                            7'd0 : begin
+                            end
+                            default: begin
+                                illigal = 1'b1
+                            end
+                        endcase
+                    end
+                    3'b100 : begin
+                        /* Decode func7 */
+                        case (func7)
+                            /* XOR */
+                            7'd0 : begin
+                            end
+                            default: begin
+                                illigal = 1'b1
+                            end
+                        endcase
+                    end
+                    3'b101 : begin
+                        /* Decode func7 */
+                        case (func7)
+                            /* SRL */
+                            7'd0 : begin
+                            end
+                            /* SRA */
+                            7'd32 : begin
+                            end
+                            default: begin
+                                illigal = 1'b1
+                            end
+                        endcase
+                    end
+                    3'b110 : begin
+                        /* Decode func7 */
+                        case (func7)
+                            /* OR */
+                            7'd0 : begin
+                            end
+                            default: begin
+                                illigal = 1'b1
+                            end
+                        endcase
+                    end
+                    3'b111 : begin
+                        /* Decode func7 */
+                        case (func7)
+                            /* AND */
+                            7'd0 : begin
+                            end
+                            default: begin
+                                illigal = 1'b1
+                            end
+                        endcase
+                    end
+                    default: begin
+                        illigal = 1'b1
+                    end
+                endcase
+            end
+            OpcodeMiscMem : begin
+                /* Decode FENCE2 */
+                case (FENCE2)
+                    'd0 : begin
+                        /* Decode FENCE3 */
+                        case (FENCE3)
+                            /* FENCE */
+                            'd0 : begin
+                            end
+                            default: begin
+                                illigal = 1'b1
+                            end
+                        endcase
+                    end
+                    'd32 : begin
+                        /* Decode FENCEI */
+                        case (FENCEI)
+                            /* FENCEI */
+                            'd0 : begin
+                            end
+                            default: begin
+                                illigal = 1'b1
+                            end
+                        endcase
+                    end
+                    default: begin
+                        illigal = 1'b1
+                    end
+                endcase
+            end
+            OpcodeSystem : begin
+                /* Decode func3 */
+                case (func3)
+                    3'b000 : begin
+                        /* Decode FENCEI */
+                        case (FENCEI)
+                            /* ECALL */
+                            'd0 : begin
+                            end
+                            /* EBREAK */
+                            'd1 : begin
+                            end
+                            default: begin
+                                illigal = 1'b1
+                            end
+                        endcase
+                    end
+                    /* CSRRW */
+                    3'b001 : begin
+                    end
+                    /* CSRRS */
+                    3'b010 : begin
+                    end
+                    /* CSRRC */
+                    3'b011 : begin
+                    end
+                    /* CSRRWI */
+                    3'b101 : begin
+                    end
+                    /* CSRRSI */
+                    3'b110 : begin
+                    end
+                    /* CSRRCI */
+                    3'b111 : begin
+                    end
+                    default: begin
+                        illigal = 1'b1
+                    end
+                endcase
+            end
+            default: begin
+                illigal = 1'b1
+            end
+        endcase
     assign rs1             =  instr[19:15];
     assign rs2             =  instr[24:20];
     assign rd              =  instr[11:7];

@@ -1,0 +1,25 @@
+formats:
+    - R: {
+       fields: [rd, rs1, rs2]
+      }
+    - I: {
+       fields: [rd,rs1],
+       immediates: [I]
+      }
+    - S: {
+       fields: [rs1,rs2],
+       immediates: [S]
+      }
+    - SB: {
+       fields: [rs1,rs2],
+       immediates: [B]
+      }
+    - U: {
+       fields: [rd],
+       immediates: [U]
+      }
+    - UJ: {
+       fields: [rd],
+       immediates: [J]
+      }
+      

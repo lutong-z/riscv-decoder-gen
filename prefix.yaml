@@ -8,7 +8,7 @@
     - rs2      : {type : "isaReg_t"     , value: "instr[24:20]"}
     - op2Type  : {type : "op2Type_t"    , init : "op2Type_t.X" }
     - rd       : {type : "isaReg_t"     , value: "instr[11:7]"}
-    - wbType   : {type : "wbType_t"     , init : "wbType_t.X" }
+    - wbType   : {type : "logic   "     , init : "1'b0" }
     - illigal  : {type : "logic"        , init : "1'b0" }
     - ecall    : {type : "logic"        , init : "1'b0" }
     - ebreak   : {type : "logic"        , init : "1'b0" }

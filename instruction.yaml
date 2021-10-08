@@ -34,60 +34,108 @@ opcode:
   - OpcodeRsrvd3    : 7'b11_101_11
   - OpcodeCustom3   : 7'b11_110_11
 
+
 opcodes:
   - opcode: 6..0
-  - func3: 14..12
-  - func7: 31..25
+  - func3: 3'b0014..12
+  - func7: 7'd31..25
   - FENCE2: 19..7
   - FENCE3: 31..27
   - FENCEI: 31..20
 
 instructions:
   # RV32I
-  - LUI:    {format: U,  ext: RV32I, opcodes: {opcode: OpcodeLui},                         func: gen_lui}
-  - AUIPC:  {format: U,  ext: RV32I, opcodes: {opcode: OpcodeAuipc},                         func: gen_auipc}
-  - JAL:    {format: UJ, ext: RV32I, opcodes: {opcode: OpcodeJal},                         func: gen_jal}
-  - JALR:   {format: I,  ext: RV32I, opcodes: {opcode: OpcodeJalr, func3: 0},            func: gen_jalr}
-  - BEQ:    {format: SB, ext: RV32I, opcodes: {opcode: OpcodeBranch, func3: 0},             func: gen_beq}
-  - BNE:    {format: SB, ext: RV32I, opcodes: {opcode: OpcodeBranch,func3: 1},              func: gen_bne}
-  - BLT:    {format: SB, ext: RV32I, opcodes: {opcode: OpcodeBranch,func3: 4},              func: gen_blt}
-  - BGE:    {format: SB, ext: RV32I, opcodes: {opcode: OpcodeBranch,func3: 5},              func: gen_bge}
-  - BLTU:   {format: SB, ext: RV32I, opcodes: {opcode: OpcodeBranch,func3: 6},              func: gen_bltu}
-  - BGEU:   {format: SB, ext: RV32I, opcodes: {opcode: OpcodeBranch,func3: 7},              func: gen_bgeu}
-  - LB:     {format: I,  ext: RV32I, opcodes: {opcode: OpcodeLoad ,func3: 0},              func: gen_lb}
-  - LH:     {format: I,  ext: RV32I, opcodes: {opcode: OpcodeLoad ,func3: 1},              func: gen_lh}
-  - LW:     {format: I,  ext: RV32I, opcodes: {opcode: OpcodeLoad ,func3: 2},              func: gen_lw}
-  - LBU:    {format: I,  ext: RV32I, opcodes: {opcode: OpcodeLoad ,func3: 4},              func: gen_lbu}
-  - LHU:    {format: I,  ext: RV32I, opcodes: {opcode: OpcodeLoad ,func3: 5},              func: gen_lhu}
-  - SB:     {format: S,  ext: RV32I, opcodes: {opcode: OpcodeLoad,func3: 0},              func: gen_sb}
-  - SH:     {format: S,  ext: RV32I, opcodes: {opcode: OpcodeLoad,func3: 1},              func: gen_sh}
-  - SW:     {format: S,  ext: RV32I, opcodes: {opcode: OpcodeLoad,func3: 2},              func: gen_sw}
-  - ADDI:   {format: I,  ext: RV32I, opcodes: {opcode: OpcodeOpImm,func3: 0},              func: gen_addi}
-  - SLTI:   {format: I,  ext: RV32I, opcodes: {opcode: OpcodeOpImm,func3: 2},              func: gen_slti}
-  - SLTIU:  {format: I,  ext: RV32I, opcodes: {opcode: OpcodeOpImm,func3: 3},              func: gen_sltiu}
-  - XORI:   {format: I,  ext: RV32I, opcodes: {opcode: OpcodeOpImm,func3: 4},              func: gen_xori}
-  - ORI:    {format: I,  ext: RV32I, opcodes: {opcode: OpcodeOpImm,func3: 6},              func: gen_ori}
-  - ANDI:   {format: I,  ext: RV32I, opcodes: {opcode: OpcodeOpImm,func3: 7},              func: gen_andi}
-  - SLLI:   {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOpImm,func3: 1,func7: 0},  func: gen_slli}
-  - SRLI:   {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOpImm,func3: 5,func7: 0},  func: gen_srli}
-  - SRAI:   {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOpImm,func3: 5,func7: 32}, func: gen_srai}
-  - ADD:    {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 0,func7: 0},  func: gen_add}
-  - SUB:    {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 0,func7: 32}, func: gen_sub}
-  - SLL:    {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 1,func7: 0},  func: gen_sll}
-  - SLT:    {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 2,func7: 0},  func: gen_slt}
-  - SLTU:   {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 3,func7: 0},  func: gen_sltu}
-  - XOR:    {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 4,func7: 0},  func: gen_xor}
-  - SRL:    {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 5,func7: 0},  func: gen_srl}
-  - SRA:    {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 5,func7: 32}, func: gen_sra}
-  - OR:     {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 6,func7: 0},  func: gen_or}
-  - AND:    {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 7,func7: 0},  func: gen_and}
-  - FENCE:  {format: R,  ext: RV32I, opcodes: {opcode: OpcodeMiscMem,FENCE2: 0,FENCE3: 0},      func: gen_fence}
-  - FENCEI: {format: R,  ext: RV32I, opcodes: {opcode: OpcodeMiscMem,FENCE2: 32,FENCEI: 0},     func: gen_fence_i}
-  - ECALL:  {format: I,  ext: RV32I, opcodes: {opcode: OpcodeSystem, func3: 0, FENCEI: 0}, func: gen_ecall}
-  - EBREAK: {format: I,  ext: RV32I, opcodes: {opcode: OpcodeSystem, func3: 0, FENCEI: 1}, func: gen_ebreak}
-  - CSRRW:  {format: I,  ext: RV32I, opcodes: {opcode: OpcodeSystem,func3: 1},             func: gen_csrrw}
-  - CSRRS:  {format: I,  ext: RV32I, opcodes: {opcode: OpcodeSystem,func3: 2},             func: gen_csrrs}
-  - CSRRC:  {format: I,  ext: RV32I, opcodes: {opcode: OpcodeSystem,func3: 3},             func: gen_csrrc}
-  - CSRRWI: {format: I,  ext: RV32I, opcodes: {opcode: OpcodeSystem,func3: 5},             func: gen_csrrwi}
-  - CSRRSI: {format: I,  ext: RV32I, opcodes: {opcode: OpcodeSystem,func3: 6},             func: gen_csrrsi}
-  - CSRRCI: {format: I,  ext: RV32I, opcodes: {opcode: OpcodeSystem,func3: 7},             func: gen_csrrci}
+  - LUI:    {format: U,  ext: RV32I, opcodes: {opcode: OpcodeLui},                         
+             func: gen_lui}
+  - AUIPC:  {format: U,  ext: RV32I, opcodes: {opcode: OpcodeAuipc},                       
+             func: gen_auipc}
+  - JAL:    {format: UJ, ext: RV32I, opcodes: {opcode: OpcodeJal},                         
+             func: gen_jal}
+  - JALR:   {format: I,  ext: RV32I, opcodes: {opcode: OpcodeJalr, func3: 3'b000},              
+             func: gen_jalr}
+  - BEQ:    {format: SB, ext: RV32I, opcodes: {opcode: OpcodeBranch, func3: 3'b000},            
+             func: gen_beq}
+  - BNE:    {format: SB, ext: RV32I, opcodes: {opcode: OpcodeBranch,func3: 3'b001},             
+             func: gen_bne}
+  - BLT:    {format: SB, ext: RV32I, opcodes: {opcode: OpcodeBranch,func3: 3'b100},             
+             func: gen_blt}
+  - BGE:    {format: SB, ext: RV32I, opcodes: {opcode: OpcodeBranch,func3: 3'b101},             
+             func: gen_bge}
+  - BLTU:   {format: SB, ext: RV32I, opcodes: {opcode: OpcodeBranch,func3: 3'b110},             
+             func: gen_bltu}
+  - BGEU:   {format: SB, ext: RV32I, opcodes: {opcode: OpcodeBranch,func3: 3'b111},             
+             func: gen_bgeu}
+  - LB:     {format: I,  ext: RV32I, opcodes: {opcode: OpcodeLoad ,func3: 3'b000},              
+             func: gen_lb}
+  - LH:     {format: I,  ext: RV32I, opcodes: {opcode: OpcodeLoad ,func3: 3'b001},              
+             func: gen_lh}
+  - LW:     {format: I,  ext: RV32I, opcodes: {opcode: OpcodeLoad ,func3: 3'b010},              
+             func: gen_lw}
+  - LBU:    {format: I,  ext: RV32I, opcodes: {opcode: OpcodeLoad ,func3: 3'b100},              
+             func: gen_lbu}
+  - LHU:    {format: I,  ext: RV32I, opcodes: {opcode: OpcodeLoad ,func3: 3'b101},              
+             func: gen_lhu}
+  - SB:     {format: S,  ext: RV32I, opcodes: {opcode: OpcodeLoad,func3: 3'b000},               
+             func: gen_sb}
+  - SH:     {format: S,  ext: RV32I, opcodes: {opcode: OpcodeLoad,func3: 3'b001},               
+             func: gen_sh}
+  - SW:     {format: S,  ext: RV32I, opcodes: {opcode: OpcodeLoad,func3: 3'b010},               
+             func: gen_sw}
+  - ADDI:   {format: I,  ext: RV32I, opcodes: {opcode: OpcodeOpImm,func3: 3'b000},              
+             func: gen_addi}
+  - SLTI:   {format: I,  ext: RV32I, opcodes: {opcode: OpcodeOpImm,func3: 3'b010},              
+             func: gen_slti}
+  - SLTIU:  {format: I,  ext: RV32I, opcodes: {opcode: OpcodeOpImm,func3: 3'b011},              
+             func: gen_sltiu}
+  - XORI:   {format: I,  ext: RV32I, opcodes: {opcode: OpcodeOpImm,func3: 3'b100},              
+             func: gen_xori}
+  - ORI:    {format: I,  ext: RV32I, opcodes: {opcode: OpcodeOpImm,func3: 3'b110},              
+             func: gen_ori}
+  - ANDI:   {format: I,  ext: RV32I, opcodes: {opcode: OpcodeOpImm,func3: 3'b111},              
+             func: gen_andi}
+  - SLLI:   {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOpImm,func3: 3'b001,func7: 7'd0},     
+             func: gen_slli}
+  - SRLI:   {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOpImm,func3: 3'b101,func7: 7'd0},     
+             func: gen_srli}
+  - SRAI:   {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOpImm,func3: 3'b101,func7: 7'd32},    
+             func: gen_srai}
+  - ADD:    {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 3'b000,func7: 7'd0},        
+             func: gen_add}
+  - SUB:    {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 3'b000,func7: 7'd32},       
+             func: gen_sub}
+  - SLL:    {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 3'b001,func7: 7'd0},        
+             func: gen_sll}
+  - SLT:    {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 3'b010,func7: 7'd0},        
+             func: gen_slt}
+  - SLTU:   {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 3'b011,func7: 7'd0},        
+             func: gen_sltu}
+  - XOR:    {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 3'b100,func7: 7'd0},        
+             func: gen_xor}
+  - SRL:    {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 3'b101,func7: 7'd0},        
+             func: gen_srl}
+  - SRA:    {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 3'b101,func7: 7'd32},       
+             func: gen_sra}
+  - OR:     {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 3'b110,func7: 7'd0},        
+             func: gen_or}
+  - AND:    {format: R,  ext: RV32I, opcodes: {opcode: OpcodeOp,func3: 3'b111,func7: 7'd0},        
+             func: gen_and}
+  - FENCE:  {format: R,  ext: RV32I, opcodes: {opcode: OpcodeMiscMem,FENCE2: "'d0",FENCE3: "'d0"}, 
+             func: gen_fence}
+  - FENCEI: {format: R,  ext: RV32I, opcodes: {opcode: OpcodeMiscMem,FENCE2: "'d32",FENCEI: "'d0"},
+             func: gen_fence_i}
+  - ECALL:  {format: I,  ext: RV32I, opcodes: {opcode: OpcodeSystem, func3: 3'b000, FENCEI: "'d0"}, 
+             func: gen_ecall}
+  - EBREAK: {format: I,  ext: RV32I, opcodes: {opcode: OpcodeSystem, func3: 3'b000, FENCEI: "'d1"}, 
+             func: gen_ebreak}
+  - CSRRW:  {format: I,  ext: RV32I, opcodes: {opcode: OpcodeSystem,func3: 3'b001},             
+             func: gen_csrrw}
+  - CSRRS:  {format: I,  ext: RV32I, opcodes: {opcode: OpcodeSystem,func3: 3'b010},             
+             func: gen_csrrs}
+  - CSRRC:  {format: I,  ext: RV32I, opcodes: {opcode: OpcodeSystem,func3: 3'b011},             
+             func: gen_csrrc}
+  - CSRRWI: {format: I,  ext: RV32I, opcodes: {opcode: OpcodeSystem,func3: 3'b101},             
+             func: gen_csrrwi}
+  - CSRRSI: {format: I,  ext: RV32I, opcodes: {opcode: OpcodeSystem,func3: 3'b110},             
+             func: gen_csrrsi}
+  - CSRRCI: {format: I,  ext: RV32I, opcodes: {opcode: OpcodeSystem,func3: 3'b111},             
+             func: gen_csrrci}

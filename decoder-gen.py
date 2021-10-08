@@ -3,6 +3,7 @@
 import yaml
 
 PREFIX = 'prefix.yaml'
+FORMAT = 'format.yaml'
 INSTRUCTION = 'instruction.yaml'
 OUTPUT = 'decoder.sv'
 indentStr  = 0
@@ -18,6 +19,10 @@ def gen_header(f):
     
 def parse_prefix():
     with open(PREFIX,'r') as f:
+        data = yaml.load(f.read(),Loader=yaml.SafeLoader)
+        return data
+def parse_format():
+    with open(FORMAT,'r') as f:
         data = yaml.load(f.read(),Loader=yaml.SafeLoader)
         return data
 def parse_instr():
@@ -140,44 +145,54 @@ def gen_assign(f,data):
             if(value.get('value')):
                 printf(f,'assign {} =  {};\n'.format(key.ljust(15),value['value']))
     indentStr -=  4
-def gen_insn_code(f, insn_decoder_data):
 
+def gen_insn_code(f, insn_decoder_data,format_data):
+    global indentStr
     def gen_switch_tree(indent, opdict):
-        indentStr = " " * (indent)
-        indentStr4 = " " * (indent + 4)
-
+        global indentStr
+        indentStr += 4
         for opval, opdata in list(opdict.items()):
-            f.write(indentStr + "case {}:\n".format(opval))
+            if(opdata.get('name')):
+                printf(f,"/* {} */\n".format(opdata['name']))
+            printf(f,"{} : begin\n".format(opval))
 
             if 'oplist' in opdata:
                 name = opdata['opcode']
-                f.write(indentStr4 + "/* Decode {} */\n".format(name))
-                f.write(indentStr4 + "switch (extract32(ctx->opcode, {}, {})) {{\n"
-                                     .format(0, 0))
+                indentStr += 4
+                printf(f,"/* Decode {} */\n".format(name))
+                printf(f,"case ({})\n".format(name))
                 gen_switch_tree(indent + 4, opdata['oplist'])
+                printf(f,"endcase\n")
+                indentStr -= 4
             else:
-                insn_name = opdata['name']
                 insn_format = opdata['format']
-                insn_func = opdata['func']
-                f.write(indentStr4 + "/* {} */\n".format(insn_name))
-                f.write(indentStr4 + "decode_format_{}(ctx);\n".format(insn_format))
-                f.write(indentStr4 + "{}(env, ctx);\n".format(insn_func))
+                for type in format_data['formats']:
+                    print(type)
+                # insn_func = opdata['func']
+                # printf(f,"decode_format_{}(ctx);\n".format(insn_format))
+                # printf(f,"{}(env, ctx);\n".format(insn_func))
+            printf(f,"end\n")
 
-            f.write(indentStr4 + "break;\n")
-        f.write(indentStr + "default:\n")
-        f.write(indentStr + "    kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);\n")
-        f.write(indentStr + "    break;\n")
-        f.write(indentStr + "}\n")
+        printf(f,"default: begin\n")
+        indentStr += 4
+        printf(f,"illigal = 1'b1\n")
+        indentStr -= 4
+        printf(f,"end\n")
+        indentStr -= 4
         
-    indent = 4
-    indentStr = ' ' * 4
-    f.write(indentStr + "/* Decode {} */\n".format(insn_decoder_data['opcode']))
-    f.write(indentStr + "switch ({}) {{\n".format(insn_decoder_data['opcode'].lower()))
-    gen_switch_tree(indent, insn_decoder_data['oplist'])
+    indentStr += 4 
+    indentStr += 4
+    printf(f,"/* Decode {} */\n".format(insn_decoder_data['opcode']))
+    printf(f,"case ({}) \n".format(insn_decoder_data['opcode'].lower()))
+    gen_switch_tree(indentStr, insn_decoder_data['oplist'])
+    printf(f,"endcase\n")
+    indentStr -= 4 
+    indentStr -= 4
 
-    f.write("}\n")
+
 def main():
     prefix = parse_prefix()
+    format = parse_format()
     instr  = parse_instr()
     decode_instr = transform_insn_data(instr)
 
@@ -185,7 +200,7 @@ def main():
         gen_prefix(f,prefix)
         gen_param(f,instr)
         gen_init(f,prefix)
-        gen_insn_code(f,decode_instr)
+        gen_insn_code(f,decode_instr,format)
         gen_assign(f,prefix)
         printf(f,'endmodule')
 if __name__ == '__main__' : 
