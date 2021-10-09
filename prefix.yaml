@@ -4,11 +4,13 @@
   output :
     - uop      : {type : "uop_t"        , init : "uop_t.NOP"   }
     - rs1      : {type : "isaReg_t"     , value: "instr[19:15]"}
-    - op1Type  : {type : "op1Type_t"    , init : "op1Type_t.X" }
+    - rdRs1En  : {type : "logic   "     , init : "1'b0" }
     - rs2      : {type : "isaReg_t"     , value: "instr[24:20]"}
-    - op2Type  : {type : "op2Type_t"    , init : "op2Type_t.X" }
+    - rdRs2En  : {type : "logic   "     , init : "1'b0" }
     - rd       : {type : "isaReg_t"     , value: "instr[11:7]"}
-    - wbType   : {type : "logic   "     , init : "1'b0" }
+    - use_imm  : {type : "logic"        , init : "1'b0" }
+    - use_pc   : {type : "logic"        , init : "1'b0" }
+    - use_zimm : {type : "logic"        , init : "1'b0" }
     - illigal  : {type : "logic"        , init : "1'b0" }
     - ecall    : {type : "logic"        , init : "1'b0" }
     - ebreak   : {type : "logic"        , init : "1'b0" }
@@ -20,3 +22,6 @@
     - opcode   : {type : "logic[6:0]"   , value: "instr[6:0]"}
     - func3    : {type : "logic[2:0]"   , value: "instr[14:12]"}
     - func7    : {type : "logic[6:0]"   , value: "instr[31:25]"}
+    - FENCE2   : {type : "logic[12:0]"   , value: "instr[19:7]"}
+    - FENCE3   : {type : "logic[4:0]"   , value: "instr[31:27]"}
+    - FENCEI   : {type : "logic[11:0]"   , value: "instr[31:20]"}

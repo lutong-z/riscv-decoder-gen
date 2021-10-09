@@ -24,7 +24,11 @@ def parse_prefix():
 def parse_format():
     with open(FORMAT,'r') as f:
         data = yaml.load(f.read(),Loader=yaml.SafeLoader)
-        return data
+        formatDict = {}
+        for type in data['formats']:
+            for key,value in type.items():
+                formatDict[key] = value
+        return formatDict
 def parse_instr():
     with open(INSTRUCTION,'r') as f:
         data = yaml.load(f.read(),Loader=yaml.SafeLoader)
@@ -165,12 +169,26 @@ def gen_insn_code(f, insn_decoder_data,format_data):
                 printf(f,"endcase\n")
                 indentStr -= 4
             else:
+                indentStr += 4
                 insn_format = opdata['format']
-                for type in format_data['formats']:
-                    print(type)
+                fields = format_data[insn_format]['fields']
+                if(opdata.get('name')):
+                    printf(f,"uop = uop_t.{};\n".format(opdata['name']))
+                if 'rs1' in fields:
+                    printf(f,"rdRs1En = 1'b1;\n")
+                if 'rs2' in fields:
+                    printf(f,"rdRs2En = 1'b1;\n")
+                if format_data[insn_format].get('immediates'):
+                    printf(f,"use_imm = 1'b1;\n")
+                    printf(f,"immType = immType_t.{};\n".format(format_data[insn_format]['immediates'][0]))
+                if opdata.get('func'):
+                    insn_func = opdata['func']
+                    for key,value in insn_func.items():
+                        printf(f,"{} = {};\n".format(key,value))
                 # insn_func = opdata['func']
                 # printf(f,"decode_format_{}(ctx);\n".format(insn_format))
                 # printf(f,"{}(env, ctx);\n".format(insn_func))
+                indentStr -= 4
             printf(f,"end\n")
 
         printf(f,"default: begin\n")

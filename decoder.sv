@@ -9,11 +9,13 @@ module decoder(
     // output signal
     output uop_t           uop,
     output isaReg_t        rs1,
-    output op1Type_t       op1Type,
+    output logic           rdRs1En,
     output isaReg_t        rs2,
-    output op2Type_t       op2Type,
+    output logic           rdRs2En,
     output isaReg_t        rd,
-    output logic           wbType,
+    output logic           use_imm,
+    output logic           use_pc,
+    output logic           use_zimm,
     output logic           illigal,
     output logic           ecall,
     output logic           ebreak,
@@ -55,12 +57,17 @@ module decoder(
     logic[6:0]      opcode;
     logic[2:0]      func3;
     logic[6:0]      func7;
+    logic[12:0]     FENCE2;
+    logic[4:0]      FENCE3;
+    logic[11:0]     FENCEI;
     // decode logic
     always_comb  begin
         uop             =  uop_t.NOP;
-        op1Type         =  op1Type_t.X;
-        op2Type         =  op2Type_t.X;
-        wbType          =  1'b0;
+        rdRs1En         =  1'b0;
+        rdRs2En         =  1'b0;
+        use_imm         =  1'b0;
+        use_pc          =  1'b0;
+        use_zimm        =  1'b0;
         illigal         =  1'b0;
         ecall           =  1'b0;
         ebreak          =  1'b0;
@@ -72,18 +79,32 @@ module decoder(
         case (opcode) 
             /* LUI */
             OpcodeLui : begin
+                uop = uop_t.LUI;
+                use_imm = 1'b1;
+                immType = immType_t.U;
             end
             /* AUIPC */
             OpcodeAuipc : begin
+                uop = uop_t.AUIPC;
+                use_imm = 1'b1;
+                immType = immType_t.U;
+                use_pc = 1'b1;
             end
             /* JAL */
             OpcodeJal : begin
+                uop = uop_t.JAL;
+                use_imm = 1'b1;
+                immType = immType_t.J;
             end
             OpcodeJalr : begin
                 /* Decode func3 */
                 case (func3)
                     /* JALR */
                     3'b000 : begin
+                        uop = uop_t.JALR;
+                        rdRs1En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.I;
                     end
                     default: begin
                         illigal = 1'b1
@@ -95,21 +116,51 @@ module decoder(
                 case (func3)
                     /* BEQ */
                     3'b000 : begin
+                        uop = uop_t.BEQ;
+                        rdRs1En = 1'b1;
+                        rdRs2En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.B;
                     end
                     /* BNE */
                     3'b001 : begin
+                        uop = uop_t.BNE;
+                        rdRs1En = 1'b1;
+                        rdRs2En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.B;
                     end
                     /* BLT */
                     3'b100 : begin
+                        uop = uop_t.BLT;
+                        rdRs1En = 1'b1;
+                        rdRs2En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.B;
                     end
                     /* BGE */
                     3'b101 : begin
+                        uop = uop_t.BGE;
+                        rdRs1En = 1'b1;
+                        rdRs2En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.B;
                     end
                     /* BLTU */
                     3'b110 : begin
+                        uop = uop_t.BLTU;
+                        rdRs1En = 1'b1;
+                        rdRs2En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.B;
                     end
                     /* BGEU */
                     3'b111 : begin
+                        uop = uop_t.BGEU;
+                        rdRs1En = 1'b1;
+                        rdRs2En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.B;
                     end
                     default: begin
                         illigal = 1'b1
@@ -121,18 +172,41 @@ module decoder(
                 case (func3)
                     /* SB */
                     3'b000 : begin
+                        uop = uop_t.SB;
+                        rdRs1En = 1'b1;
+                        rdRs2En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.S;
                     end
                     /* SH */
                     3'b001 : begin
+                        uop = uop_t.SH;
+                        rdRs1En = 1'b1;
+                        rdRs2En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.S;
                     end
                     /* SW */
                     3'b010 : begin
+                        uop = uop_t.SW;
+                        rdRs1En = 1'b1;
+                        rdRs2En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.S;
                     end
                     /* LBU */
                     3'b100 : begin
+                        uop = uop_t.LBU;
+                        rdRs1En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.I;
                     end
                     /* LHU */
                     3'b101 : begin
+                        uop = uop_t.LHU;
+                        rdRs1En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.I;
                     end
                     default: begin
                         illigal = 1'b1
@@ -144,27 +218,54 @@ module decoder(
                 case (func3)
                     /* ADDI */
                     3'b000 : begin
+                        uop = uop_t.ADDI;
+                        rdRs1En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.I;
                     end
                     /* SLTI */
                     3'b010 : begin
+                        uop = uop_t.SLTI;
+                        rdRs1En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.I;
                     end
                     /* SLTIU */
                     3'b011 : begin
+                        uop = uop_t.SLTIU;
+                        rdRs1En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.I;
                     end
                     /* XORI */
                     3'b100 : begin
+                        uop = uop_t.XORI;
+                        rdRs1En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.I;
                     end
                     /* ORI */
                     3'b110 : begin
+                        uop = uop_t.ORI;
+                        rdRs1En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.I;
                     end
                     /* ANDI */
                     3'b111 : begin
+                        uop = uop_t.ANDI;
+                        rdRs1En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.I;
                     end
                     3'b001 : begin
                         /* Decode func7 */
                         case (func7)
                             /* SLLI */
                             7'd0 : begin
+                                uop = uop_t.SLLI;
+                                rdRs1En = 1'b1;
+                                rdRs2En = 1'b1;
                             end
                             default: begin
                                 illigal = 1'b1
@@ -176,9 +277,15 @@ module decoder(
                         case (func7)
                             /* SRLI */
                             7'd0 : begin
+                                uop = uop_t.SRLI;
+                                rdRs1En = 1'b1;
+                                rdRs2En = 1'b1;
                             end
                             /* SRAI */
                             7'd32 : begin
+                                uop = uop_t.SRAI;
+                                rdRs1En = 1'b1;
+                                rdRs2En = 1'b1;
                             end
                             default: begin
                                 illigal = 1'b1
@@ -198,9 +305,15 @@ module decoder(
                         case (func7)
                             /* ADD */
                             7'd0 : begin
+                                uop = uop_t.ADD;
+                                rdRs1En = 1'b1;
+                                rdRs2En = 1'b1;
                             end
                             /* SUB */
                             7'd32 : begin
+                                uop = uop_t.SUB;
+                                rdRs1En = 1'b1;
+                                rdRs2En = 1'b1;
                             end
                             default: begin
                                 illigal = 1'b1
@@ -212,6 +325,9 @@ module decoder(
                         case (func7)
                             /* SLL */
                             7'd0 : begin
+                                uop = uop_t.SLL;
+                                rdRs1En = 1'b1;
+                                rdRs2En = 1'b1;
                             end
                             default: begin
                                 illigal = 1'b1
@@ -223,6 +339,9 @@ module decoder(
                         case (func7)
                             /* SLT */
                             7'd0 : begin
+                                uop = uop_t.SLT;
+                                rdRs1En = 1'b1;
+                                rdRs2En = 1'b1;
                             end
                             default: begin
                                 illigal = 1'b1
@@ -234,6 +353,9 @@ module decoder(
                         case (func7)
                             /* SLTU */
                             7'd0 : begin
+                                uop = uop_t.SLTU;
+                                rdRs1En = 1'b1;
+                                rdRs2En = 1'b1;
                             end
                             default: begin
                                 illigal = 1'b1
@@ -245,6 +367,9 @@ module decoder(
                         case (func7)
                             /* XOR */
                             7'd0 : begin
+                                uop = uop_t.XOR;
+                                rdRs1En = 1'b1;
+                                rdRs2En = 1'b1;
                             end
                             default: begin
                                 illigal = 1'b1
@@ -256,9 +381,15 @@ module decoder(
                         case (func7)
                             /* SRL */
                             7'd0 : begin
+                                uop = uop_t.SRL;
+                                rdRs1En = 1'b1;
+                                rdRs2En = 1'b1;
                             end
                             /* SRA */
                             7'd32 : begin
+                                uop = uop_t.SRA;
+                                rdRs1En = 1'b1;
+                                rdRs2En = 1'b1;
                             end
                             default: begin
                                 illigal = 1'b1
@@ -270,6 +401,9 @@ module decoder(
                         case (func7)
                             /* OR */
                             7'd0 : begin
+                                uop = uop_t.OR;
+                                rdRs1En = 1'b1;
+                                rdRs2En = 1'b1;
                             end
                             default: begin
                                 illigal = 1'b1
@@ -281,6 +415,9 @@ module decoder(
                         case (func7)
                             /* AND */
                             7'd0 : begin
+                                uop = uop_t.AND;
+                                rdRs1En = 1'b1;
+                                rdRs2En = 1'b1;
                             end
                             default: begin
                                 illigal = 1'b1
@@ -300,6 +437,9 @@ module decoder(
                         case (FENCE3)
                             /* FENCE */
                             'd0 : begin
+                                uop = uop_t.FENCE;
+                                rdRs1En = 1'b1;
+                                rdRs2En = 1'b1;
                             end
                             default: begin
                                 illigal = 1'b1
@@ -311,6 +451,9 @@ module decoder(
                         case (FENCEI)
                             /* FENCEI */
                             'd0 : begin
+                                uop = uop_t.FENCEI;
+                                rdRs1En = 1'b1;
+                                rdRs2En = 1'b1;
                             end
                             default: begin
                                 illigal = 1'b1
@@ -330,9 +473,19 @@ module decoder(
                         case (FENCEI)
                             /* ECALL */
                             'd0 : begin
+                                uop = uop_t.ECALL;
+                                rdRs1En = 1'b1;
+                                use_imm = 1'b1;
+                                immType = immType_t.I;
+                                ecall = 1'b1;
                             end
                             /* EBREAK */
                             'd1 : begin
+                                uop = uop_t.EBREAK;
+                                rdRs1En = 1'b1;
+                                use_imm = 1'b1;
+                                immType = immType_t.I;
+                                ebreak = 1'b1;
                             end
                             default: begin
                                 illigal = 1'b1
@@ -341,21 +494,48 @@ module decoder(
                     end
                     /* CSRRW */
                     3'b001 : begin
+                        uop = uop_t.CSRRW;
+                        rdRs1En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.I;
                     end
                     /* CSRRS */
                     3'b010 : begin
+                        uop = uop_t.CSRRS;
+                        rdRs1En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.I;
                     end
                     /* CSRRC */
                     3'b011 : begin
+                        uop = uop_t.CSRRC;
+                        rdRs1En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.I;
                     end
                     /* CSRRWI */
                     3'b101 : begin
+                        uop = uop_t.CSRRWI;
+                        rdRs1En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.I;
+                        use_zimm = 1'b1;
                     end
                     /* CSRRSI */
                     3'b110 : begin
+                        uop = uop_t.CSRRSI;
+                        rdRs1En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.I;
+                        use_zimm = 1'b1;
                     end
                     /* CSRRCI */
                     3'b111 : begin
+                        uop = uop_t.CSRRCI;
+                        rdRs1En = 1'b1;
+                        use_imm = 1'b1;
+                        immType = immType_t.I;
+                        use_zimm = 1'b1;
                     end
                     default: begin
                         illigal = 1'b1
@@ -372,4 +552,7 @@ module decoder(
     assign opcode          =  instr[6:0];
     assign func3           =  instr[14:12];
     assign func7           =  instr[31:25];
+    assign FENCE2          =  instr[19:7];
+    assign FENCE3          =  instr[31:27];
+    assign FENCEI          =  instr[31:20];
 endmodule
