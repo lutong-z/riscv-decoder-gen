@@ -1,0 +1,82 @@
+
+
+formats:
+    - R: {
+       fields: [rd, rs1, rs2]
+      }
+    - I: {
+       fields: [rd,rs1],
+       immediates: I
+      }
+    - S: {
+       fields: [rs1,rs2],
+       immediates: S
+      }
+    - SB: {
+       fields: [rs1,rs2],
+       immediates: B
+      }
+    - U: {
+       fields: [rd],
+       immediates: U
+      }
+    - UJ: {
+       fields: [rd],
+       immediates: J
+      }
+opcodes:
+  - opcode : 6..0
+  - func3  : 14..12
+  - func7  : 31..25
+  - rd     : 11..7
+  - rs1    : 19..15
+  - csr    : 31..20
+
+instructions:
+  # RV32I
+  - LUI       :    {format: U,  opcodes: {opcode: 7'b0110111                                                                       } , ext: [RV32I,RV64I]}
+  - AUIPC     :    {format: U,  opcodes: {opcode: 7'b0010111                                                                       } , ext: [RV32I,RV64I]}
+  - JAL       :    {format: J,  opcodes: {opcode: 7'b1101111                                                                       } , ext: [RV32I,RV64I]}
+  - JALR      :    {format: I,  opcodes: {opcode: 7'b1100111 , func3: 3'b000                                                       } , ext: [RV32I,RV64I]}
+  - BEQ       :    {format: B,  opcodes: {opcode: 7'b1100011 , func3: 3'b000                                                       } , ext: [RV32I,RV64I]}
+  - BNE       :    {format: B,  opcodes: {opcode: 7'b1100011 , func3: 3'b001                                                       } , ext: [RV32I,RV64I]}
+  - BLT       :    {format: B,  opcodes: {opcode: 7'b1100011 , func3: 3'b100                                                       } , ext: [RV32I,RV64I]}
+  - BGE       :    {format: B,  opcodes: {opcode: 7'b1100011 , func3: 3'b101                                                       } , ext: [RV32I,RV64I]}
+  - BLTU      :    {format: B,  opcodes: {opcode: 7'b1100011 , func3: 3'b110                                                       } , ext: [RV32I,RV64I]}
+  - BGEU      :    {format: B,  opcodes: {opcode: 7'b1100011 , func3: 3'b111                                                       } , ext: [RV32I,RV64I]}
+  - LB        :    {format: I,  opcodes: {opcode: 7'b0000011 , func3: 3'b000                                                       } , ext: [RV32I,RV64I]}
+  - LH        :    {format: I,  opcodes: {opcode: 7'b0000011 , func3: 3'b001                                                       } , ext: [RV32I,RV64I]}
+  - LW        :    {format: I,  opcodes: {opcode: 7'b0000011 , func3: 3'b010                                                       } , ext: [RV32I,RV64I]}
+  - LBU       :    {format: I,  opcodes: {opcode: 7'b0000011 , func3: 3'b100                                                       } , ext: [RV32I,RV64I]}
+  - LHU       :    {format: I,  opcodes: {opcode: 7'b0000011 , func3: 3'b101                                                       } , ext: [RV32I,RV64I]}
+  - SB        :    {format: S,  opcodes: {opcode: 7'b0100011 , func3: 3'b000                                                       } , ext: [RV32I,RV64I]}
+  - SH        :    {format: S,  opcodes: {opcode: 7'b0100011 , func3: 3'b001                                                       } , ext: [RV32I,RV64I]}
+  - SW        :    {format: S,  opcodes: {opcode: 7'b0100011 , func3: 3'b010                                                       } , ext: [RV32I,RV64I]}
+  - ADDI      :    {format: I,  opcodes: {opcode: 7'b0010011 , func3: 3'b000                                                       } , ext: [RV32I,RV64I]}
+  - SLTI      :    {format: I,  opcodes: {opcode: 7'b0010011 , func3: 3'b010                                                       } , ext: [RV32I,RV64I]}
+  - SLTIU     :    {format: I,  opcodes: {opcode: 7'b0010011 , func3: 3'b011                                                       } , ext: [RV32I,RV64I]}
+  - XORI      :    {format: I,  opcodes: {opcode: 7'b0010011 , func3: 3'b100                                                       } , ext: [RV32I,RV64I]}
+  - ORI       :    {format: I,  opcodes: {opcode: 7'b0010011 , func3: 3'b110                                                       } , ext: [RV32I,RV64I]}
+  - ANDI      :    {format: I,  opcodes: {opcode: 7'b0010011 , func3: 3'b111                                                       } , ext: [RV32I,RV64I]}
+  - SLLI32    :    {format: I,  opcodes: {opcode: 7'b0010011 , func3: 3'b001, func7: 7'b0000000                                    } , ext: [RV32I,RV64I]}
+  - SRLI32    :    {format: I,  opcodes: {opcode: 7'b0010011 , func3: 3'b101, func7: 7'b0000000                                    } , ext: [RV32I,RV64I]}
+  - SRAI32    :    {format: I,  opcodes: {opcode: 7'b0010011 , func3: 3'b101, func7: 7'b0100000                                    } , ext: [RV32I,RV64I]}
+  - SLLI64    :    {format: I,  opcodes: {opcode: 7'b0010011 , func3: 3'b001, func7: 7'b000000?                                    } , ext: [RV32I,RV64I]}
+  - SRLI64    :    {format: I,  opcodes: {opcode: 7'b0010011 , func3: 3'b101, func7: 7'b000000?                                    } , ext: [RV32I,RV64I]}
+  - SRAI64    :    {format: I,  opcodes: {opcode: 7'b0010011 , func3: 3'b101, func7: 7'b010000?                                    } , ext: [RV32I,RV64I]}
+  - ADD       :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b000, func7: 7'b0000000                                    } , ext: [RV32I,RV64I]}
+  - SUB       :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b000, func7: 7'b0100000                                    } , ext: [RV32I,RV64I]}
+  - SLL       :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b001, func7: 7'b0000000                                    } , ext: [RV32I,RV64I]}
+  - SLT       :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b010, func7: 7'b0000000                                    } , ext: [RV32I,RV64I]}
+  - SLTU      :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b011, func7: 7'b0000000                                    } , ext: [RV32I,RV64I]}  
+  - XOR       :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b100, func7: 7'b0000000                                    } , ext: [RV32I,RV64I]}
+  - SRL       :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b101, func7: 7'b0000000                                    } , ext: [RV32I,RV64I]}
+  - SRA       :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b101, func7: 7'b0100000                                    } , ext: [RV32I,RV64I]}
+  - OR        :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b110, func7: 7'b0000000                                    } , ext: [RV32I,RV64I]}
+  - AND       :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b111, func7: 7'b0000000                                    } , ext: [RV32I,RV64I]}
+  - FENCE     :    {format: I,  opcodes: {opcode: 7'b0001111 , func3: 3'b000                                                       } , ext: [RV32I,RV64I]}
+# - FENCE.TSO :    {format: I,  opcodes: {opcode: 7'b0001111 , func3: 3'b000                                                       } , ext: [RV32I,RV64I]}
+# - PAUSE     :    {format: I,  opcodes: {opcode: 7'b0001111 , func3: 3'b000                                                       } , ext: [RV32I,RV64I]}
+  - ECALL     :    {format: I,  opcodes: {opcode: 7'b1110011 , func3: 3'b000, rd: 5'b00000 , rs1: 5'b00000 , csr: 12'b000000000000 } , ext: [RV32I,RV64I]}
+  - EBREAK    :    {format: I,  opcodes: {opcode: 7'b1110011 , func3: 3'b000, rd: 5'b00000 , rs1: 5'b00000 , csr: 12'b000000000001 } , ext: [RV32I,RV64I]}
+  
