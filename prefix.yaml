@@ -2,15 +2,12 @@
   input  :
     - instr    : {type : "instr_t"} 
   output :
-    - uop      : {type : "uop_t"        , init : "uop_t.NOP"   }
+    - uop      : {type : "uop_t"        , init : "uop_t.ADDI"   }
     - rs1      : {type : "isaReg_t"     , value: "instr[19:15]"}
     - rdRs1En  : {type : "logic   "     , init : "1'b0" }
     - rs2      : {type : "isaReg_t"     , value: "instr[24:20]"}
     - rdRs2En  : {type : "logic   "     , init : "1'b0" }
     - rd       : {type : "isaReg_t"     , value: "instr[11:7]"}
-    - use_imm  : {type : "logic"        , init : "1'b0" }
-    - use_pc   : {type : "logic"        , init : "1'b0" }
-    - use_zimm : {type : "logic"        , init : "1'b0" }
     - illigal  : {type : "logic"        , init : "1'b0" }
     - ecall    : {type : "logic"        , init : "1'b0" }
     - ebreak   : {type : "logic"        , init : "1'b0" }

@@ -140,6 +140,7 @@ def gen_init(f,data):
 def gen_assign(f,data):
     global indentStr
     indentStr +=  4
+    printf(f,'/* Assignment */\n')
     for i,signal in enumerate(data['output']):
         for key,value in signal.items():
             if(value.get('value')):
@@ -179,7 +180,6 @@ def gen_insn_code(f, insn_decoder_data,format_data):
                 if 'rs2' in fields:
                     printf(f,"rdRs2En = 1'b1;\n")
                 if format_data[insn_format].get('immediates'):
-                    printf(f,"use_imm = 1'b1;\n")
                     printf(f,"immType = immType_t.{};\n".format(format_data[insn_format]['immediates'][0]))
                 if opdata.get('func'):
                     insn_func = opdata['func']
@@ -193,7 +193,7 @@ def gen_insn_code(f, insn_decoder_data,format_data):
 
         printf(f,"default: begin\n")
         indentStr += 4
-        printf(f,"illigal = 1'b1\n")
+        printf(f,"illigal = 1'b1;\n")
         indentStr -= 4
         printf(f,"end\n")
         indentStr -= 4
@@ -205,6 +205,7 @@ def gen_insn_code(f, insn_decoder_data,format_data):
     gen_switch_tree(indentStr, insn_decoder_data['oplist'])
     printf(f,"endcase\n")
     indentStr -= 4 
+    printf(f,"end\n")
     indentStr -= 4
 
 

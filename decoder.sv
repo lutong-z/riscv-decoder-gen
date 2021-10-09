@@ -13,9 +13,6 @@ module decoder(
     output isaReg_t        rs2,
     output logic           rdRs2En,
     output isaReg_t        rd,
-    output logic           use_imm,
-    output logic           use_pc,
-    output logic           use_zimm,
     output logic           illigal,
     output logic           ecall,
     output logic           ebreak,
@@ -62,12 +59,9 @@ module decoder(
     logic[11:0]     FENCEI;
     // decode logic
     always_comb  begin
-        uop             =  uop_t.NOP;
+        uop             =  uop_t.ADDI;
         rdRs1En         =  1'b0;
         rdRs2En         =  1'b0;
-        use_imm         =  1'b0;
-        use_pc          =  1'b0;
-        use_zimm        =  1'b0;
         illigal         =  1'b0;
         ecall           =  1'b0;
         ebreak          =  1'b0;
@@ -80,20 +74,16 @@ module decoder(
             /* LUI */
             OpcodeLui : begin
                 uop = uop_t.LUI;
-                use_imm = 1'b1;
                 immType = immType_t.U;
             end
             /* AUIPC */
             OpcodeAuipc : begin
                 uop = uop_t.AUIPC;
-                use_imm = 1'b1;
                 immType = immType_t.U;
-                use_pc = 1'b1;
             end
             /* JAL */
             OpcodeJal : begin
                 uop = uop_t.JAL;
-                use_imm = 1'b1;
                 immType = immType_t.J;
             end
             OpcodeJalr : begin
@@ -103,11 +93,10 @@ module decoder(
                     3'b000 : begin
                         uop = uop_t.JALR;
                         rdRs1En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.I;
                     end
                     default: begin
-                        illigal = 1'b1
+                        illigal = 1'b1;
                     end
                 endcase
             end
@@ -119,7 +108,6 @@ module decoder(
                         uop = uop_t.BEQ;
                         rdRs1En = 1'b1;
                         rdRs2En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.B;
                     end
                     /* BNE */
@@ -127,15 +115,13 @@ module decoder(
                         uop = uop_t.BNE;
                         rdRs1En = 1'b1;
                         rdRs2En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.B;
                     end
-                    /* BLT */
+                    /* SRAW */
                     3'b100 : begin
-                        uop = uop_t.BLT;
+                        uop = uop_t.SRAW;
                         rdRs1En = 1'b1;
                         rdRs2En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.B;
                     end
                     /* BGE */
@@ -143,7 +129,6 @@ module decoder(
                         uop = uop_t.BGE;
                         rdRs1En = 1'b1;
                         rdRs2En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.B;
                     end
                     /* BLTU */
@@ -151,7 +136,6 @@ module decoder(
                         uop = uop_t.BLTU;
                         rdRs1En = 1'b1;
                         rdRs2En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.B;
                     end
                     /* BGEU */
@@ -159,11 +143,10 @@ module decoder(
                         uop = uop_t.BGEU;
                         rdRs1En = 1'b1;
                         rdRs2En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.B;
                     end
                     default: begin
-                        illigal = 1'b1
+                        illigal = 1'b1;
                     end
                 endcase
             end
@@ -175,7 +158,6 @@ module decoder(
                         uop = uop_t.SB;
                         rdRs1En = 1'b1;
                         rdRs2En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.S;
                     end
                     /* SH */
@@ -183,7 +165,6 @@ module decoder(
                         uop = uop_t.SH;
                         rdRs1En = 1'b1;
                         rdRs2En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.S;
                     end
                     /* SW */
@@ -191,25 +172,22 @@ module decoder(
                         uop = uop_t.SW;
                         rdRs1En = 1'b1;
                         rdRs2En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.S;
                     end
                     /* LBU */
                     3'b100 : begin
                         uop = uop_t.LBU;
                         rdRs1En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.I;
                     end
                     /* LHU */
                     3'b101 : begin
                         uop = uop_t.LHU;
                         rdRs1En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.I;
                     end
                     default: begin
-                        illigal = 1'b1
+                        illigal = 1'b1;
                     end
                 endcase
             end
@@ -220,42 +198,36 @@ module decoder(
                     3'b000 : begin
                         uop = uop_t.ADDI;
                         rdRs1En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.I;
                     end
                     /* SLTI */
                     3'b010 : begin
                         uop = uop_t.SLTI;
                         rdRs1En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.I;
                     end
                     /* SLTIU */
                     3'b011 : begin
                         uop = uop_t.SLTIU;
                         rdRs1En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.I;
                     end
                     /* XORI */
                     3'b100 : begin
                         uop = uop_t.XORI;
                         rdRs1En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.I;
                     end
                     /* ORI */
                     3'b110 : begin
                         uop = uop_t.ORI;
                         rdRs1En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.I;
                     end
                     /* ANDI */
                     3'b111 : begin
                         uop = uop_t.ANDI;
                         rdRs1En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.I;
                     end
                     3'b001 : begin
@@ -268,7 +240,7 @@ module decoder(
                                 rdRs2En = 1'b1;
                             end
                             default: begin
-                                illigal = 1'b1
+                                illigal = 1'b1;
                             end
                         endcase
                     end
@@ -288,12 +260,12 @@ module decoder(
                                 rdRs2En = 1'b1;
                             end
                             default: begin
-                                illigal = 1'b1
+                                illigal = 1'b1;
                             end
                         endcase
                     end
                     default: begin
-                        illigal = 1'b1
+                        illigal = 1'b1;
                     end
                 endcase
             end
@@ -316,7 +288,7 @@ module decoder(
                                 rdRs2En = 1'b1;
                             end
                             default: begin
-                                illigal = 1'b1
+                                illigal = 1'b1;
                             end
                         endcase
                     end
@@ -330,7 +302,7 @@ module decoder(
                                 rdRs2En = 1'b1;
                             end
                             default: begin
-                                illigal = 1'b1
+                                illigal = 1'b1;
                             end
                         endcase
                     end
@@ -344,7 +316,7 @@ module decoder(
                                 rdRs2En = 1'b1;
                             end
                             default: begin
-                                illigal = 1'b1
+                                illigal = 1'b1;
                             end
                         endcase
                     end
@@ -358,7 +330,7 @@ module decoder(
                                 rdRs2En = 1'b1;
                             end
                             default: begin
-                                illigal = 1'b1
+                                illigal = 1'b1;
                             end
                         endcase
                     end
@@ -372,7 +344,7 @@ module decoder(
                                 rdRs2En = 1'b1;
                             end
                             default: begin
-                                illigal = 1'b1
+                                illigal = 1'b1;
                             end
                         endcase
                     end
@@ -392,7 +364,7 @@ module decoder(
                                 rdRs2En = 1'b1;
                             end
                             default: begin
-                                illigal = 1'b1
+                                illigal = 1'b1;
                             end
                         endcase
                     end
@@ -406,7 +378,7 @@ module decoder(
                                 rdRs2En = 1'b1;
                             end
                             default: begin
-                                illigal = 1'b1
+                                illigal = 1'b1;
                             end
                         endcase
                     end
@@ -420,12 +392,12 @@ module decoder(
                                 rdRs2En = 1'b1;
                             end
                             default: begin
-                                illigal = 1'b1
+                                illigal = 1'b1;
                             end
                         endcase
                     end
                     default: begin
-                        illigal = 1'b1
+                        illigal = 1'b1;
                     end
                 endcase
             end
@@ -442,7 +414,7 @@ module decoder(
                                 rdRs2En = 1'b1;
                             end
                             default: begin
-                                illigal = 1'b1
+                                illigal = 1'b1;
                             end
                         endcase
                     end
@@ -456,12 +428,12 @@ module decoder(
                                 rdRs2En = 1'b1;
                             end
                             default: begin
-                                illigal = 1'b1
+                                illigal = 1'b1;
                             end
                         endcase
                     end
                     default: begin
-                        illigal = 1'b1
+                        illigal = 1'b1;
                     end
                 endcase
             end
@@ -475,7 +447,6 @@ module decoder(
                             'd0 : begin
                                 uop = uop_t.ECALL;
                                 rdRs1En = 1'b1;
-                                use_imm = 1'b1;
                                 immType = immType_t.I;
                                 ecall = 1'b1;
                             end
@@ -483,12 +454,11 @@ module decoder(
                             'd1 : begin
                                 uop = uop_t.EBREAK;
                                 rdRs1En = 1'b1;
-                                use_imm = 1'b1;
                                 immType = immType_t.I;
                                 ebreak = 1'b1;
                             end
                             default: begin
-                                illigal = 1'b1
+                                illigal = 1'b1;
                             end
                         endcase
                     end
@@ -496,56 +466,49 @@ module decoder(
                     3'b001 : begin
                         uop = uop_t.CSRRW;
                         rdRs1En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.I;
                     end
                     /* CSRRS */
                     3'b010 : begin
                         uop = uop_t.CSRRS;
                         rdRs1En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.I;
                     end
                     /* CSRRC */
                     3'b011 : begin
                         uop = uop_t.CSRRC;
                         rdRs1En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.I;
                     end
                     /* CSRRWI */
                     3'b101 : begin
                         uop = uop_t.CSRRWI;
                         rdRs1En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.I;
-                        use_zimm = 1'b1;
                     end
                     /* CSRRSI */
                     3'b110 : begin
                         uop = uop_t.CSRRSI;
                         rdRs1En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.I;
-                        use_zimm = 1'b1;
                     end
                     /* CSRRCI */
                     3'b111 : begin
                         uop = uop_t.CSRRCI;
                         rdRs1En = 1'b1;
-                        use_imm = 1'b1;
                         immType = immType_t.I;
-                        use_zimm = 1'b1;
                     end
                     default: begin
-                        illigal = 1'b1
+                        illigal = 1'b1;
                     end
                 endcase
             end
             default: begin
-                illigal = 1'b1
+                illigal = 1'b1;
             end
         endcase
+    end
+    /* Assignment */
     assign rs1             =  instr[19:15];
     assign rs2             =  instr[24:20];
     assign rd              =  instr[11:7];
