@@ -1,0 +1,27 @@
+enum : {
+  imm_type_t : [R,I,S,B,U,J]
+}
+
+signals : {
+  # input 
+  instruction : {type : "logic[31:0]" , direction : input},
+  # output 
+  uop         : {type : "uop_t"       , init  : "decoder_pkg::ADDI"   , direction : output},
+  rs1         : {type : "logic[4:0]"  , value : "instruction[19:15]"  , direction : output},
+  rs2         : {type : "logic[4:0]"  , value : "instruction[24:20]"  , direction : output},
+  rd          : {type : "logic[4:0]"  , value : "instruction[11:7]"   , direction : output},
+  use_rs1     : {type : "logic"       , init  : "1'b0"                , direction : output},
+  use_rs2     : {type : "logic"       , init  : "1'b0"                , direction : output},
+  imm         : {type : "logic[32:0]" ,                                 direction : output},
+  use_pc      : {type : "logic"       , init  : "1'b0"                , direction : output},
+  use_imm     : {type : "logic"       ,                                 direction : output},
+  use_uimm    : {type : "logic"       , init  : "1'b0"                , direction : output},
+  illigal     : {type : "logic"       , init  : "1'b0"                , direction : output},
+  ecall       : {type : "logic"       , init  : "1'b0"                , direction : output},
+  ebreak      : {type : "logic"       , init  : "1'b0"                , direction : output},
+  mret        : {type : "logic"       , init  : "1'b0"                , direction : output},
+  sret        : {type : "logic"       , init  : "1'b0"                , direction : output},
+  uret        : {type : "logic"       , init  : "1'b0"                , direction : output},
+  # tempput       
+  imm_type    : {type : "imm_type_t"  , init  : "decoder_pkg::U" }
+}        

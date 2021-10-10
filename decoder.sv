@@ -1,521 +1,740 @@
-/*
- * THIS FILE IS GENERATED, DO NOT EDIT IT MANUALLY
- * (C) 2021 Lutong Zhang <lutong.z@rioslab.org>
- */
-
-module decoder(
-    // input signal
-    input  instr_t         instr,
-    // output signal
-    output uop_t           uop,
-    output isaReg_t        rs1,
-    output logic           rdRs1En,
-    output isaReg_t        rs2,
-    output logic           rdRs2En,
-    output isaReg_t        rd,
-    output logic           illigal,
-    output logic           ecall,
-    output logic           ebreak,
-    output logic           mret,
-    output logic           sret,
-    output logic           uret
+module decoder
+    import decoder_pkg::*;
+(
+    /* input signal */
+    input       logic[31:0]     instruction,
+    /* output signal */
+    output      uop_t           uop,
+    output      logic[4:0]      rs1,
+    output      logic[4:0]      rs2,
+    output      logic[4:0]      rd,
+    output      logic           use_rs1,
+    output      logic           use_rs2,
+    output      logic[32:0]     imm,
+    output      logic           use_pc,
+    output      logic           use_imm,
+    output      logic           use_uimm,
+    output      logic           illigal,
+    output      logic           ecall,
+    output      logic           ebreak,
+    output      logic           mret,
+    output      logic           sret,
+    output      logic           uret
 );
-    // parameter
-    localparam OpcodeLoad      = 7'b00_000_11;
-    localparam OpcodeLoadFp    = 7'b00_001_11;
-    localparam OpcodeCustom0   = 7'b00_010_11;
-    localparam OpcodeMiscMem   = 7'b00_011_11;
-    localparam OpcodeOpImm     = 7'b00_100_11;
-    localparam OpcodeAuipc     = 7'b00_101_11;
-    localparam OpcodeOpImm32   = 7'b00_110_11;
-    localparam OpcodeStore     = 7'b01_000_11;
-    localparam OpcodeStoreFp   = 7'b01_001_11;
-    localparam OpcodeCustom1   = 7'b01_010_11;
-    localparam OpcodeAmo       = 7'b01_011_11;
-    localparam OpcodeOp        = 7'b01_100_11;
-    localparam OpcodeLui       = 7'b01_101_11;
-    localparam OpcodeOp32      = 7'b01_110_11;
-    localparam OpcodeMadd      = 7'b10_000_11;
-    localparam OpcodeMsub      = 7'b10_001_11;
-    localparam OpcodeNmsub     = 7'b10_010_11;
-    localparam OpcodeNmadd     = 7'b10_011_11;
-    localparam OpcodeOpFp      = 7'b10_100_11;
-    localparam OpcodeRsrvd1    = 7'b10_101_11;
-    localparam OpcodeCustom2   = 7'b10_110_11;
-    localparam OpcodeBranch    = 7'b11_000_11;
-    localparam OpcodeJalr      = 7'b11_001_11;
-    localparam OpcodeRsrvd2    = 7'b11_010_11;
-    localparam OpcodeJal       = 7'b11_011_11;
-    localparam OpcodeSystem    = 7'b11_100_11;
-    localparam OpcodeRsrvd3    = 7'b11_101_11;
-    localparam OpcodeCustom3   = 7'b11_110_11;
-    // temp varible
-    immType_t       immType;
+    /* temp signal */
+    imm_type_t      imm_type;
     logic[6:0]      opcode;
     logic[2:0]      func3;
     logic[6:0]      func7;
-    logic[12:0]     FENCE2;
-    logic[4:0]      FENCE3;
-    logic[11:0]     FENCEI;
-    // decode logic
-    always_comb  begin
-        uop             =  uop_t.ADDI;
-        rdRs1En         =  1'b0;
-        rdRs2En         =  1'b0;
-        illigal         =  1'b0;
-        ecall           =  1'b0;
-        ebreak          =  1'b0;
-        mret            =  1'b0;
-        sret            =  1'b0;
-        uret            =  1'b0;
-        immType         =  immType_t.I;
-        /* Decode opcode */
-        case (opcode) 
-            /* LUI */
-            OpcodeLui : begin
-                uop = uop_t.LUI;
-                immType = immType_t.U;
+    logic[11:0]     func12;
+    /* Decode Logic */
+    always_comb begin
+        /* Signal initialize*/
+        uop             = decoder_pkg::ADDI;
+        use_rs1         = 1'b0;
+        use_rs2         = 1'b0;
+        use_pc          = 1'b0;
+        use_uimm        = 1'b0;
+        illigal         = 1'b0;
+        ecall           = 1'b0;
+        ebreak          = 1'b0;
+        mret            = 1'b0;
+        sret            = 1'b0;
+        uret            = 1'b0;
+        imm_type        = decoder_pkg::U;
+        /* opcode */
+        unique casez(opcode)
+            7'b0110111 : begin
+                /* LUI */
+                uop = decoder_pkg::LUI;
             end
-            /* AUIPC */
-            OpcodeAuipc : begin
-                uop = uop_t.AUIPC;
-                immType = immType_t.U;
+            7'b0010111 : begin
+                /* AUIPC */
+                uop = decoder_pkg::AUIPC;
+                use_pc = 1'b1;
             end
-            /* JAL */
-            OpcodeJal : begin
-                uop = uop_t.JAL;
-                immType = immType_t.J;
+            7'b1101111 : begin
+                /* JAL */
+                uop = decoder_pkg::JAL;
             end
-            OpcodeJalr : begin
-                /* Decode func3 */
-                case (func3)
-                    /* JALR */
+            7'b1100111 : begin
+                /* func3 */
+                unique casez(func3)
                     3'b000 : begin
-                        uop = uop_t.JALR;
-                        rdRs1En = 1'b1;
-                        immType = immType_t.I;
+                        /* JALR */
+                        uop = decoder_pkg::JALR;
+                        use_rs1  = 1'b1;
                     end
-                    default: begin
+                    default : begin
                         illigal = 1'b1;
                     end
                 endcase
             end
-            OpcodeBranch : begin
-                /* Decode func3 */
-                case (func3)
-                    /* BEQ */
+            7'b1100011 : begin
+                /* func3 */
+                unique casez(func3)
                     3'b000 : begin
-                        uop = uop_t.BEQ;
-                        rdRs1En = 1'b1;
-                        rdRs2En = 1'b1;
-                        immType = immType_t.B;
+                        /* BEQ */
+                        uop = decoder_pkg::BEQ;
+                        use_rs1  = 1'b1;
+                        use_rs2  = 1'b1;
                     end
-                    /* BNE */
                     3'b001 : begin
-                        uop = uop_t.BNE;
-                        rdRs1En = 1'b1;
-                        rdRs2En = 1'b1;
-                        immType = immType_t.B;
+                        /* BNE */
+                        uop = decoder_pkg::BNE;
+                        use_rs1  = 1'b1;
+                        use_rs2  = 1'b1;
                     end
-                    /* SRAW */
                     3'b100 : begin
-                        uop = uop_t.SRAW;
-                        rdRs1En = 1'b1;
-                        rdRs2En = 1'b1;
-                        immType = immType_t.B;
+                        /* BLT */
+                        uop = decoder_pkg::BLT;
+                        use_rs1  = 1'b1;
+                        use_rs2  = 1'b1;
                     end
-                    /* BGE */
                     3'b101 : begin
-                        uop = uop_t.BGE;
-                        rdRs1En = 1'b1;
-                        rdRs2En = 1'b1;
-                        immType = immType_t.B;
+                        /* BGE */
+                        uop = decoder_pkg::BGE;
+                        use_rs1  = 1'b1;
+                        use_rs2  = 1'b1;
                     end
-                    /* BLTU */
                     3'b110 : begin
-                        uop = uop_t.BLTU;
-                        rdRs1En = 1'b1;
-                        rdRs2En = 1'b1;
-                        immType = immType_t.B;
+                        /* BLTU */
+                        uop = decoder_pkg::BLTU;
+                        use_rs1  = 1'b1;
+                        use_rs2  = 1'b1;
                     end
-                    /* BGEU */
                     3'b111 : begin
-                        uop = uop_t.BGEU;
-                        rdRs1En = 1'b1;
-                        rdRs2En = 1'b1;
-                        immType = immType_t.B;
+                        /* BGEU */
+                        uop = decoder_pkg::BGEU;
+                        use_rs1  = 1'b1;
+                        use_rs2  = 1'b1;
                     end
-                    default: begin
+                    default : begin
                         illigal = 1'b1;
                     end
                 endcase
             end
-            OpcodeLoad : begin
-                /* Decode func3 */
-                case (func3)
-                    /* SB */
+            7'b0000011 : begin
+                /* func3 */
+                unique casez(func3)
                     3'b000 : begin
-                        uop = uop_t.SB;
-                        rdRs1En = 1'b1;
-                        rdRs2En = 1'b1;
-                        immType = immType_t.S;
+                        /* LB */
+                        uop = decoder_pkg::LB;
+                        use_rs1  = 1'b1;
                     end
-                    /* SH */
                     3'b001 : begin
-                        uop = uop_t.SH;
-                        rdRs1En = 1'b1;
-                        rdRs2En = 1'b1;
-                        immType = immType_t.S;
+                        /* LH */
+                        uop = decoder_pkg::LH;
+                        use_rs1  = 1'b1;
                     end
-                    /* SW */
                     3'b010 : begin
-                        uop = uop_t.SW;
-                        rdRs1En = 1'b1;
-                        rdRs2En = 1'b1;
-                        immType = immType_t.S;
+                        /* LW */
+                        uop = decoder_pkg::LW;
+                        use_rs1  = 1'b1;
                     end
-                    /* LBU */
                     3'b100 : begin
-                        uop = uop_t.LBU;
-                        rdRs1En = 1'b1;
-                        immType = immType_t.I;
+                        /* LBU */
+                        uop = decoder_pkg::LBU;
+                        use_rs1  = 1'b1;
                     end
-                    /* LHU */
                     3'b101 : begin
-                        uop = uop_t.LHU;
-                        rdRs1En = 1'b1;
-                        immType = immType_t.I;
+                        /* LHU */
+                        uop = decoder_pkg::LHU;
+                        use_rs1  = 1'b1;
                     end
-                    default: begin
-                        illigal = 1'b1;
-                    end
-                endcase
-            end
-            OpcodeOpImm : begin
-                /* Decode func3 */
-                case (func3)
-                    /* ADDI */
-                    3'b000 : begin
-                        uop = uop_t.ADDI;
-                        rdRs1En = 1'b1;
-                        immType = immType_t.I;
-                    end
-                    /* SLTI */
-                    3'b010 : begin
-                        uop = uop_t.SLTI;
-                        rdRs1En = 1'b1;
-                        immType = immType_t.I;
-                    end
-                    /* SLTIU */
-                    3'b011 : begin
-                        uop = uop_t.SLTIU;
-                        rdRs1En = 1'b1;
-                        immType = immType_t.I;
-                    end
-                    /* XORI */
-                    3'b100 : begin
-                        uop = uop_t.XORI;
-                        rdRs1En = 1'b1;
-                        immType = immType_t.I;
-                    end
-                    /* ORI */
                     3'b110 : begin
-                        uop = uop_t.ORI;
-                        rdRs1En = 1'b1;
-                        immType = immType_t.I;
-                    end
-                    /* ANDI */
-                    3'b111 : begin
-                        uop = uop_t.ANDI;
-                        rdRs1En = 1'b1;
-                        immType = immType_t.I;
-                    end
-                    3'b001 : begin
-                        /* Decode func7 */
-                        case (func7)
-                            /* SLLI */
-                            7'd0 : begin
-                                uop = uop_t.SLLI;
-                                rdRs1En = 1'b1;
-                                rdRs2En = 1'b1;
-                            end
-                            default: begin
-                                illigal = 1'b1;
-                            end
-                        endcase
-                    end
-                    3'b101 : begin
-                        /* Decode func7 */
-                        case (func7)
-                            /* SRLI */
-                            7'd0 : begin
-                                uop = uop_t.SRLI;
-                                rdRs1En = 1'b1;
-                                rdRs2En = 1'b1;
-                            end
-                            /* SRAI */
-                            7'd32 : begin
-                                uop = uop_t.SRAI;
-                                rdRs1En = 1'b1;
-                                rdRs2En = 1'b1;
-                            end
-                            default: begin
-                                illigal = 1'b1;
-                            end
-                        endcase
-                    end
-                    default: begin
-                        illigal = 1'b1;
-                    end
-                endcase
-            end
-            OpcodeOp : begin
-                /* Decode func3 */
-                case (func3)
-                    3'b000 : begin
-                        /* Decode func7 */
-                        case (func7)
-                            /* ADD */
-                            7'd0 : begin
-                                uop = uop_t.ADD;
-                                rdRs1En = 1'b1;
-                                rdRs2En = 1'b1;
-                            end
-                            /* SUB */
-                            7'd32 : begin
-                                uop = uop_t.SUB;
-                                rdRs1En = 1'b1;
-                                rdRs2En = 1'b1;
-                            end
-                            default: begin
-                                illigal = 1'b1;
-                            end
-                        endcase
-                    end
-                    3'b001 : begin
-                        /* Decode func7 */
-                        case (func7)
-                            /* SLL */
-                            7'd0 : begin
-                                uop = uop_t.SLL;
-                                rdRs1En = 1'b1;
-                                rdRs2En = 1'b1;
-                            end
-                            default: begin
-                                illigal = 1'b1;
-                            end
-                        endcase
-                    end
-                    3'b010 : begin
-                        /* Decode func7 */
-                        case (func7)
-                            /* SLT */
-                            7'd0 : begin
-                                uop = uop_t.SLT;
-                                rdRs1En = 1'b1;
-                                rdRs2En = 1'b1;
-                            end
-                            default: begin
-                                illigal = 1'b1;
-                            end
-                        endcase
+                        /* LWU */
+                        uop = decoder_pkg::LWU;
+                        use_rs1  = 1'b1;
                     end
                     3'b011 : begin
-                        /* Decode func7 */
-                        case (func7)
-                            /* SLTU */
-                            7'd0 : begin
-                                uop = uop_t.SLTU;
-                                rdRs1En = 1'b1;
-                                rdRs2En = 1'b1;
+                        /* LD */
+                        uop = decoder_pkg::LD;
+                        use_rs1  = 1'b1;
+                    end
+                    default : begin
+                        illigal = 1'b1;
+                    end
+                endcase
+            end
+            7'b0100011 : begin
+                /* func3 */
+                unique casez(func3)
+                    3'b000 : begin
+                        /* SB */
+                        uop = decoder_pkg::SB;
+                        use_rs1  = 1'b1;
+                        use_rs2  = 1'b1;
+                    end
+                    3'b001 : begin
+                        /* SH */
+                        uop = decoder_pkg::SH;
+                        use_rs1  = 1'b1;
+                        use_rs2  = 1'b1;
+                    end
+                    3'b010 : begin
+                        /* SW */
+                        uop = decoder_pkg::SW;
+                        use_rs1  = 1'b1;
+                        use_rs2  = 1'b1;
+                    end
+                    3'b011 : begin
+                        /* SD */
+                        uop = decoder_pkg::SD;
+                        use_rs1  = 1'b1;
+                        use_rs2  = 1'b1;
+                    end
+                    default : begin
+                        illigal = 1'b1;
+                    end
+                endcase
+            end
+            7'b0010011 : begin
+                /* func3 */
+                unique casez(func3)
+                    3'b000 : begin
+                        /* ADDI */
+                        uop = decoder_pkg::ADDI;
+                        use_rs1  = 1'b1;
+                    end
+                    3'b010 : begin
+                        /* SLTI */
+                        uop = decoder_pkg::SLTI;
+                        use_rs1  = 1'b1;
+                    end
+                    3'b011 : begin
+                        /* SLTIU */
+                        uop = decoder_pkg::SLTIU;
+                        use_rs1  = 1'b1;
+                    end
+                    3'b100 : begin
+                        /* XORI */
+                        uop = decoder_pkg::XORI;
+                        use_rs1  = 1'b1;
+                    end
+                    3'b110 : begin
+                        /* ORI */
+                        uop = decoder_pkg::ORI;
+                        use_rs1  = 1'b1;
+                    end
+                    3'b111 : begin
+                        /* ANDI */
+                        uop = decoder_pkg::ANDI;
+                        use_rs1  = 1'b1;
+                    end
+                    3'b001 : begin
+                        /* func7 */
+                        unique casez(func7)
+                            7'b000000? : begin
+                                /* SLLI */
+                                uop = decoder_pkg::SLLI;
+                                use_rs1  = 1'b1;
+                                imm_type = decoder_pkg::I;
+                                use_rs2 = 1'b0;
                             end
-                            default: begin
+                            default : begin
+                                illigal = 1'b1;
+                            end
+                        endcase
+                    end
+                    3'b101 : begin
+                        /* func7 */
+                        unique casez(func7)
+                            7'b000000? : begin
+                                /* SRLI */
+                                uop = decoder_pkg::SRLI;
+                                use_rs1  = 1'b1;
+                                imm_type = decoder_pkg::I;
+                                use_rs2 = 1'b0;
+                            end
+                            7'b010000? : begin
+                                /* SRAI */
+                                uop = decoder_pkg::SRAI;
+                                use_rs1  = 1'b1;
+                                imm_type = decoder_pkg::I;
+                                use_rs2 = 1'b0;
+                            end
+                            default : begin
+                                illigal = 1'b1;
+                            end
+                        endcase
+                    end
+                    default : begin
+                        illigal = 1'b1;
+                    end
+                endcase
+            end
+            7'b0110011 : begin
+                /* func3 */
+                unique casez(func3)
+                    3'b000 : begin
+                        /* func7 */
+                        unique casez(func7)
+                            7'b0000000 : begin
+                                /* ADD */
+                                uop = decoder_pkg::ADD;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            7'b0100000 : begin
+                                /* SUB */
+                                uop = decoder_pkg::SUB;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            7'b0000001 : begin
+                                /* MUL */
+                                uop = decoder_pkg::MUL;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            7'b0111011 : begin
+                                /* MULW */
+                                uop = decoder_pkg::MULW;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            default : begin
+                                illigal = 1'b1;
+                            end
+                        endcase
+                    end
+                    3'b001 : begin
+                        /* func7 */
+                        unique casez(func7)
+                            7'b0000000 : begin
+                                /* SLL */
+                                uop = decoder_pkg::SLL;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            7'b0000001 : begin
+                                /* MULH */
+                                uop = decoder_pkg::MULH;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            default : begin
+                                illigal = 1'b1;
+                            end
+                        endcase
+                    end
+                    3'b010 : begin
+                        /* func7 */
+                        unique casez(func7)
+                            7'b0000000 : begin
+                                /* SLT */
+                                uop = decoder_pkg::SLT;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            7'b0000001 : begin
+                                /* MULHSU */
+                                uop = decoder_pkg::MULHSU;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            default : begin
+                                illigal = 1'b1;
+                            end
+                        endcase
+                    end
+                    3'b011 : begin
+                        /* func7 */
+                        unique casez(func7)
+                            7'b0000000 : begin
+                                /* SLTU */
+                                uop = decoder_pkg::SLTU;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            7'b0000001 : begin
+                                /* MULHU */
+                                uop = decoder_pkg::MULHU;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            default : begin
                                 illigal = 1'b1;
                             end
                         endcase
                     end
                     3'b100 : begin
-                        /* Decode func7 */
-                        case (func7)
-                            /* XOR */
-                            7'd0 : begin
-                                uop = uop_t.XOR;
-                                rdRs1En = 1'b1;
-                                rdRs2En = 1'b1;
+                        /* func7 */
+                        unique casez(func7)
+                            7'b0000000 : begin
+                                /* XOR */
+                                uop = decoder_pkg::XOR;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
                             end
-                            default: begin
+                            7'b0000001 : begin
+                                /* DIV */
+                                uop = decoder_pkg::DIV;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            7'b0111011 : begin
+                                /* DIVW */
+                                uop = decoder_pkg::DIVW;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            default : begin
                                 illigal = 1'b1;
                             end
                         endcase
                     end
                     3'b101 : begin
-                        /* Decode func7 */
-                        case (func7)
-                            /* SRL */
-                            7'd0 : begin
-                                uop = uop_t.SRL;
-                                rdRs1En = 1'b1;
-                                rdRs2En = 1'b1;
+                        /* func7 */
+                        unique casez(func7)
+                            7'b0000000 : begin
+                                /* SRL */
+                                uop = decoder_pkg::SRL;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
                             end
-                            /* SRA */
-                            7'd32 : begin
-                                uop = uop_t.SRA;
-                                rdRs1En = 1'b1;
-                                rdRs2En = 1'b1;
+                            7'b0100000 : begin
+                                /* SRA */
+                                uop = decoder_pkg::SRA;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
                             end
-                            default: begin
+                            7'b0000001 : begin
+                                /* DIVU */
+                                uop = decoder_pkg::DIVU;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            7'b0111011 : begin
+                                /* DIVUW */
+                                uop = decoder_pkg::DIVUW;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            default : begin
                                 illigal = 1'b1;
                             end
                         endcase
                     end
                     3'b110 : begin
-                        /* Decode func7 */
-                        case (func7)
-                            /* OR */
-                            7'd0 : begin
-                                uop = uop_t.OR;
-                                rdRs1En = 1'b1;
-                                rdRs2En = 1'b1;
+                        /* func7 */
+                        unique casez(func7)
+                            7'b0000000 : begin
+                                /* OR */
+                                uop = decoder_pkg::OR;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
                             end
-                            default: begin
+                            7'b0000001 : begin
+                                /* REM */
+                                uop = decoder_pkg::REM;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            7'b0111011 : begin
+                                /* REMW */
+                                uop = decoder_pkg::REMW;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            default : begin
                                 illigal = 1'b1;
                             end
                         endcase
                     end
                     3'b111 : begin
-                        /* Decode func7 */
-                        case (func7)
-                            /* AND */
-                            7'd0 : begin
-                                uop = uop_t.AND;
-                                rdRs1En = 1'b1;
-                                rdRs2En = 1'b1;
+                        /* func7 */
+                        unique casez(func7)
+                            7'b0000000 : begin
+                                /* AND */
+                                uop = decoder_pkg::AND;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
                             end
-                            default: begin
+                            7'b0000001 : begin
+                                /* REMU */
+                                uop = decoder_pkg::REMU;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            7'b0111011 : begin
+                                /* REMUW */
+                                uop = decoder_pkg::REMUW;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            default : begin
                                 illigal = 1'b1;
                             end
                         endcase
                     end
-                    default: begin
+                    default : begin
                         illigal = 1'b1;
                     end
                 endcase
             end
-            OpcodeMiscMem : begin
-                /* Decode FENCE2 */
-                case (FENCE2)
-                    'd0 : begin
-                        /* Decode FENCE3 */
-                        case (FENCE3)
-                            /* FENCE */
-                            'd0 : begin
-                                uop = uop_t.FENCE;
-                                rdRs1En = 1'b1;
-                                rdRs2En = 1'b1;
-                            end
-                            default: begin
-                                illigal = 1'b1;
-                            end
-                        endcase
-                    end
-                    'd32 : begin
-                        /* Decode FENCEI */
-                        case (FENCEI)
-                            /* FENCEI */
-                            'd0 : begin
-                                uop = uop_t.FENCEI;
-                                rdRs1En = 1'b1;
-                                rdRs2En = 1'b1;
-                            end
-                            default: begin
-                                illigal = 1'b1;
-                            end
-                        endcase
-                    end
-                    default: begin
-                        illigal = 1'b1;
-                    end
-                endcase
-            end
-            OpcodeSystem : begin
-                /* Decode func3 */
-                case (func3)
+            7'b0011011 : begin
+                /* func3 */
+                unique casez(func3)
                     3'b000 : begin
-                        /* Decode FENCEI */
-                        case (FENCEI)
-                            /* ECALL */
-                            'd0 : begin
-                                uop = uop_t.ECALL;
-                                rdRs1En = 1'b1;
-                                immType = immType_t.I;
-                                ecall = 1'b1;
+                        /* ADDIW */
+                        uop = decoder_pkg::ADDIW;
+                        use_rs1  = 1'b1;
+                    end
+                    3'b001 : begin
+                        /* func7 */
+                        unique casez(func7)
+                            7'b0000000 : begin
+                                /* SLLIW */
+                                uop = decoder_pkg::SLLIW;
+                                use_rs1  = 1'b1;
                             end
-                            /* EBREAK */
-                            'd1 : begin
-                                uop = uop_t.EBREAK;
-                                rdRs1En = 1'b1;
-                                immType = immType_t.I;
-                                ebreak = 1'b1;
-                            end
-                            default: begin
+                            default : begin
                                 illigal = 1'b1;
                             end
                         endcase
                     end
-                    /* CSRRW */
-                    3'b001 : begin
-                        uop = uop_t.CSRRW;
-                        rdRs1En = 1'b1;
-                        immType = immType_t.I;
-                    end
-                    /* CSRRS */
-                    3'b010 : begin
-                        uop = uop_t.CSRRS;
-                        rdRs1En = 1'b1;
-                        immType = immType_t.I;
-                    end
-                    /* CSRRC */
-                    3'b011 : begin
-                        uop = uop_t.CSRRC;
-                        rdRs1En = 1'b1;
-                        immType = immType_t.I;
-                    end
-                    /* CSRRWI */
                     3'b101 : begin
-                        uop = uop_t.CSRRWI;
-                        rdRs1En = 1'b1;
-                        immType = immType_t.I;
+                        /* func7 */
+                        unique casez(func7)
+                            7'b0000000 : begin
+                                /* SRLIW */
+                                uop = decoder_pkg::SRLIW;
+                                use_rs1  = 1'b1;
+                            end
+                            7'b0100000 : begin
+                                /* SRAIW */
+                                uop = decoder_pkg::SRAIW;
+                                use_rs1  = 1'b1;
+                            end
+                            default : begin
+                                illigal = 1'b1;
+                            end
+                        endcase
                     end
-                    /* CSRRSI */
-                    3'b110 : begin
-                        uop = uop_t.CSRRSI;
-                        rdRs1En = 1'b1;
-                        immType = immType_t.I;
-                    end
-                    /* CSRRCI */
-                    3'b111 : begin
-                        uop = uop_t.CSRRCI;
-                        rdRs1En = 1'b1;
-                        immType = immType_t.I;
-                    end
-                    default: begin
+                    default : begin
                         illigal = 1'b1;
                     end
                 endcase
             end
-            default: begin
+            7'b0111011 : begin
+                /* func3 */
+                unique casez(func3)
+                    3'b000 : begin
+                        /* func7 */
+                        unique casez(func7)
+                            7'b0000000 : begin
+                                /* ADDW */
+                                uop = decoder_pkg::ADDW;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            7'b0100000 : begin
+                                /* SUBW */
+                                uop = decoder_pkg::SUBW;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            default : begin
+                                illigal = 1'b1;
+                            end
+                        endcase
+                    end
+                    3'b001 : begin
+                        /* func7 */
+                        unique casez(func7)
+                            7'b0000000 : begin
+                                /* SLLW */
+                                uop = decoder_pkg::SLLW;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            default : begin
+                                illigal = 1'b1;
+                            end
+                        endcase
+                    end
+                    3'b101 : begin
+                        /* func7 */
+                        unique casez(func7)
+                            7'b0000000 : begin
+                                /* SRLW */
+                                uop = decoder_pkg::SRLW;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            7'b0100000 : begin
+                                /* SRAW */
+                                uop = decoder_pkg::SRAW;
+                                use_rs1  = 1'b1;
+                                use_rs2  = 1'b1;
+                            end
+                            default : begin
+                                illigal = 1'b1;
+                            end
+                        endcase
+                    end
+                    default : begin
+                        illigal = 1'b1;
+                    end
+                endcase
+            end
+            7'b0001111 : begin
+                /* func3 */
+                unique casez(func3)
+                    3'b000 : begin
+                        /* FENCE */
+                        uop = decoder_pkg::FENCE;
+                        use_rs1 = 1'b0;
+                    end
+                    default : begin
+                        illigal = 1'b1;
+                    end
+                endcase
+            end
+            7'b1110011 : begin
+                /* func3 */
+                unique casez(func3)
+                    3'b000 : begin
+                        /* rd */
+                        unique casez(rd)
+                            5'b00000 : begin
+                                /* rs1 */
+                                unique casez(rs1)
+                                    5'b00000 : begin
+                                        /* func12 */
+                                        unique casez(func12)
+                                            12'b000000000000 : begin
+                                                /* ECALL */
+                                                uop = decoder_pkg::ECALL;
+                                                ecall = 1'b1;
+                                                use_rs1 = 1'b0;
+                                            end
+                                            12'b000000000001 : begin
+                                                /* EBREAK */
+                                                uop = decoder_pkg::EBREAK;
+                                                ebreak = 1'b1;
+                                                use_rs1 = 1'b0;
+                                            end
+                                            12'b001100000010 : begin
+                                                /* MRET */
+                                                uop = decoder_pkg::MRET;
+                                                mret = 1'b1;
+                                                use_rs1 = 1'b0;
+                                            end
+                                            12'b000100000010 : begin
+                                                /* SRET */
+                                                uop = decoder_pkg::SRET;
+                                                sret = 1'b1;
+                                                use_rs1 = 1'b0;
+                                            end
+                                            default : begin
+                                                illigal = 1'b1;
+                                            end
+                                        endcase
+                                    end
+                                    default : begin
+                                        illigal = 1'b1;
+                                    end
+                                endcase
+                            end
+                            default : begin
+                                illigal = 1'b1;
+                            end
+                        endcase
+                    end
+                    3'b001 : begin
+                        /* CSRRW */
+                        uop = decoder_pkg::CSRRW;
+                        use_rs1  = 1'b1;
+                    end
+                    3'b010 : begin
+                        /* CSRRS */
+                        uop = decoder_pkg::CSRRS;
+                        use_rs1  = 1'b1;
+                    end
+                    3'b011 : begin
+                        /* CSRRC */
+                        uop = decoder_pkg::CSRRC;
+                        use_rs1  = 1'b1;
+                    end
+                    3'b101 : begin
+                        /* CSRRWI */
+                        uop = decoder_pkg::CSRRWI;
+                        use_uimm = 1'b1;
+                        use_rs1 = 1'b0;
+                    end
+                    3'b110 : begin
+                        /* CSRRSI */
+                        uop = decoder_pkg::CSRRSI;
+                        use_uimm = 1'b1;
+                        use_rs1 = 1'b0;
+                    end
+                    3'b111 : begin
+                        /* CSRRCI */
+                        uop = decoder_pkg::CSRRCI;
+                        use_uimm = 1'b1;
+                        use_rs1 = 1'b0;
+                    end
+                    default : begin
+                        illigal = 1'b1;
+                    end
+                endcase
+            end
+            default : begin
                 illigal = 1'b1;
             end
         endcase
+        /* Imm Selector */
+        unique case(imm_type)
+            decoder_pkg::I: begin
+                use_imm = 1'b1;
+                imm[32:12] = {21{instruction[11]}};
+                imm[11:0] = instruction[31:20];
+            end
+            decoder_pkg::S: begin
+                use_imm = 1'b1;
+                imm[32:12] = {21{instruction[11]}};
+                imm[11:5] = instruction[31:25];
+                imm[4:0] = instruction[11:7];
+            end
+            decoder_pkg::B: begin
+                use_imm = 1'b1;
+                imm[32:13] = {20{instruction[12]}};
+                imm[12] = instruction[31];
+                imm[11] = instruction[7];
+                imm[10:5] = instruction[30:25];
+                imm[4:1] = instruction[11:8];
+                imm[1:0] = 2'b0;
+            end
+            decoder_pkg::U: begin
+                use_imm = 1'b1;
+                imm[32:32] = {1{1'b0}};
+                imm[31:12] = instruction[31:12];
+                imm[12:0] = 13'b0;
+            end
+            decoder_pkg::J: begin
+                use_imm = 1'b1;
+                imm[32:21] = {12{instruction[20]}};
+                imm[20] = instruction[31];
+                imm[19:12] = instruction[19:12];
+                imm[11] = instruction[20];
+                imm[10:1] = instruction[30:21];
+                imm[1:0] = 2'b0;
+            end
+            default: begin
+                imm = 33'b0;
+                use_imm = 1'b0;
+            end
+        endcase
     end
-    /* Assignment */
-    assign rs1             =  instr[19:15];
-    assign rs2             =  instr[24:20];
-    assign rd              =  instr[11:7];
-    assign opcode          =  instr[6:0];
-    assign func3           =  instr[14:12];
-    assign func7           =  instr[31:25];
-    assign FENCE2          =  instr[19:7];
-    assign FENCE3          =  instr[31:27];
-    assign FENCEI          =  instr[31:20];
+    /* Signal Assignment */
+    assign rs1             = instruction[19:15];
+    assign rs2             = instruction[24:20];
+    assign rd              = instruction[11:7];
+    assign opcode          = instruction[6:0];
+    assign func3           = instruction[14:12];
+    assign func7           = instruction[31:25];
+    assign func12          = instruction[31:20];
 endmodule

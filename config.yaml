@@ -1,0 +1,4 @@
+config:
+  - xlen : 64
+  - supportISA  : [System,ZiCsr,RV64I,RV64M]
+  - supportMode : [M,S]
