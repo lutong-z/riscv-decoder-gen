@@ -132,6 +132,10 @@ def gen_module(spec,signal_dict):
                         for signal,value in data['control'].items():
                             assert signal in signal_dict['signal'], "Undefined signal {}".format(signal)
                             printf(f,'{} = {};\n'.format(signal,value))
+                    if set(data['ext']) & set(["RV32F","RV32D","RV32Q","RV32Zfh","RV64F","RV64D","RV64Q","RV64Zfh"]) :
+                        if 'func3' not in data['opcodes']:
+                            assert 'func3' in signal_dict['signal'], "Undefined signal {}".format('func3')
+                            printf(f,"check_frm = 1'b1;\n")
                 indent -= 4
                 printf(f,'end\n')
             printf(f,'{} : begin\n'.format('default'))

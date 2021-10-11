@@ -9,6 +9,9 @@ formats:
     - R: {
        fields: [rd, rs1, rs2]
       }
+    - R4: {
+       fields: [rd, rs1, rs2, rs3]
+      }
     - I: {
        fields: [rd,rs1],
        immediates: I
@@ -36,7 +39,11 @@ opcodes:
   - func7  : 31..25
   - rd     : 11..7
   - rs1    : 19..15
+  - rs2    : 24..20
   - func12 : 31..20
+  - funct2 : 26..26
+  - rs3    : 31..27
+
 
 instructions:
   # RV32I
@@ -124,3 +131,165 @@ instructions:
   - DIVUW     :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b101 , func7: 7'b0111011 } , ext: [RV64M]}
   - REMW      :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b110 , func7: 7'b0111011 } , ext: [RV64M]}
   - REMUW     :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b111 , func7: 7'b0111011 } , ext: [RV64M]}
+  #RV32A
+  - LRW       :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b010 , func7: "7'b00010??" , rs2 : 5'b00000} , ext: [RV32A,RV64A]}
+  - SCW       :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b010 , func7: "7'b00011??" } , ext: [RV32A,RV64A]}
+  - AMOSWAPW  :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b010 , func7: "7'b00001??" } , ext: [RV32A,RV64A]}
+  - AMOADDW   :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b010 , func7: "7'b00000??" } , ext: [RV32A,RV64A]}
+  - AMOXORW   :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b010 , func7: "7'b00100??" } , ext: [RV32A,RV64A]}
+  - AMOANDW   :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b010 , func7: "7'b01100??" } , ext: [RV32A,RV64A]}
+  - AMOORW    :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b010 , func7: "7'b01000??" } , ext: [RV32A,RV64A]}
+  - AMOMINW   :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b010 , func7: "7'b10000??" } , ext: [RV32A,RV64A]}
+  - AMOMAXW   :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b010 , func7: "7'b10100??" } , ext: [RV32A,RV64A]}
+  - AMOMINUW  :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b010 , func7: "7'b11000??" } , ext: [RV32A,RV64A]}
+  - AMOMAXUW  :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b010 , func7: "7'b11100??" } , ext: [RV32A,RV64A]}
+  #RV64A
+  - LRD       :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b011 , func7: "7'b00010??" , rs2 : 5'b00000} , ext: [RV64A]}
+  - SCD       :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b011 , func7: "7'b00011??" } , ext: [RV64A]}
+  - AMOSWAPD  :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b011 , func7: "7'b00001??" } , ext: [RV64A]}
+  - AMOADDD   :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b011 , func7: "7'b00000??" } , ext: [RV64A]}
+  - AMOXORD   :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b011 , func7: "7'b00100??" } , ext: [RV64A]}
+  - AMOANDD   :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b011 , func7: "7'b01100??" } , ext: [RV64A]}
+  - AMOORD    :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b011 , func7: "7'b01000??" } , ext: [RV64A]}
+  - AMOMIND   :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b011 , func7: "7'b10000??" } , ext: [RV64A]}
+  - AMOMAXD   :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b011 , func7: "7'b10100??" } , ext: [RV64A]}
+  - AMOMINUD  :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b011 , func7: "7'b11000??" } , ext: [RV64A]}
+  - AMOMAXUD  :    {format: R,  opcodes: {opcode: 7'b0110011 , func3: 3'b011 , func7: "7'b11100??" } , ext: [RV64A]}
+  #RV32F
+  - FLW       :    {format: I,  opcodes: {opcode: 7'b0000111 , func3: 3'010 } , ext: [RV32F,RV64F]}
+  - FSW       :    {format: S,  opcodes: {opcode: 7'b0100111 , func3: 3'010 } , ext: [RV32F,RV64F]}
+  - FMADDS    :    {format: R4, opcodes: {opcode: 7'b1000011 , func7: "7'b?????00" } , ext: [RV32F,RV64F]}
+  - FMSUBS    :    {format: R4, opcodes: {opcode: 7'b1000111 , func7: "7'b?????00" } , ext: [RV32F,RV64F]}
+  - FNMSUBS   :    {format: R4, opcodes: {opcode: 7'b1001011 , func7: "7'b?????00" } , ext: [RV32F,RV64F]}
+  - FNMADDS   :    {format: R4, opcodes: {opcode: 7'b1001111 , func7: "7'b?????00" } , ext: [RV32F,RV64F]}
+  - FADDS     :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0000000 } , ext: [RV32F,RV64F]}
+  - FSUBS     :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0000100 } , ext: [RV32F,RV64F]}
+  - FMULS     :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0001000 } , ext: [RV32F,RV64F]}
+  - FDIVS     :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0001100 } , ext: [RV32F,RV64F]}
+  - FSQRTS    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0101100 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32F,RV64F]}
+  - FSGNJS    :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'000 , func7: 7'b0010000 } , ext: [RV32F,RV64F]}
+  - FSGNJNS   :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'001 , func7: 7'b0010000 } , ext: [RV32F,RV64F]}
+  - FSGNJXS   :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'010 , func7: 7'b0010000 } , ext: [RV32F,RV64F]}
+  - FMINS     :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'000 , func7: 7'b0010100 } , ext: [RV32F,RV64F]}
+  - FMAXS     :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'001 , func7: 7'b0010100 } , ext: [RV32F,RV64F]}
+  - FCVTWS    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1100000 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32F,RV64F]}
+  - FCVTWUS   :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1100000 , rs2 : 5'b00001} , control : {use_rs2 : 1'b0} ,  ext: [RV32F,RV64F]}
+  - FMVXW     :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'000 , func7: 7'b1110000 , rs2 : 5'b00000 } , control : {use_rs2 : 1'b0} ,  ext: [RV32F,RV64F]}
+  - FEQS      :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'010 , func7: 7'b1010000 } , ext: [RV32F,RV64F]}
+  - FLTS      :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'001 , func7: 7'b1010000 } , ext: [RV32F,RV64F]}
+  - FLES      :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'000 , func7: 7'b1010000 } , ext: [RV32F,RV64F]}
+  - FCLASSS   :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'001 , func7: 7'b1110000 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32F,RV64F]}
+  - FCVTSW    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1101000 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32F,RV64F]}
+  - FCVTSWU   :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1101000 , rs2 : 5'b00001} , control : {use_rs2 : 1'b0} ,  ext: [RV32F,RV64F]}
+  - FMVWX     :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'000 , func7: 7'b1111000 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32F,RV64F]}
+  #RV64F
+  - FCVTLS    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1100000 , rs2 : 5'b00010} , control : {use_rs2 : 1'b0} ,  ext: [RV64F]}
+  - FCVTLUS   :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1100000 , rs2 : 5'b00011} , control : {use_rs2 : 1'b0} ,  ext: [RV64F]}
+  - FCVTSL    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1101000 , rs2 : 5'b00010} , control : {use_rs2 : 1'b0} ,  ext: [RV64F]}
+  - FCVTSLU   :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1101000 , rs2 : 5'b00011} , control : {use_rs2 : 1'b0} ,  ext: [RV64F]}
+  #RV32D
+  - FLD       :    {format: I,  opcodes: {opcode: 7'b0000111 , func3: 3'011 } , ext: [RV32D,RV64D]}
+  - FSD       :    {format: S,  opcodes: {opcode: 7'b0100111 , func3: 3'011 } , ext: [RV32D,RV64D]}
+  - FMADDD    :    {format: R4, opcodes: {opcode: 7'b1000011 , func7: "7'b?????01" } , ext: [RV32D,RV64D]}
+  - FMSUBD    :    {format: R4, opcodes: {opcode: 7'b1000111 , func7: "7'b?????01" } , ext: [RV32D,RV64D]}
+  - FNMSUBD   :    {format: R4, opcodes: {opcode: 7'b1001011 , func7: "7'b?????01" } , ext: [RV32D,RV64D]}
+  - FNMADDD   :    {format: R4, opcodes: {opcode: 7'b1001111 , func7: "7'b?????01" } , ext: [RV32D,RV64D]}
+  - FADDD     :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0000001 } , ext: [RV32D,RV64D]}
+  - FSUBD     :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0000101 } , ext: [RV32D,RV64D]}
+  - FMULD     :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0001001 } , ext: [RV32D,RV64D]}
+  - FDIVD     :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0001101 } , ext: [RV32D,RV64D]}
+  - FSQRTD    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0101101 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32D,RV64D]}
+  - FSGNJD    :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'000 , func7: 7'b0010001 } , ext: [RV32D,RV64D]}
+  - FSGNJND   :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'001 , func7: 7'b0010001 } , ext: [RV32D,RV64D]}
+  - FSGNJXD   :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'010 , func7: 7'b0010001 } , ext: [RV32D,RV64D]}
+  - FMIND     :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'000 , func7: 7'b0010101 } , ext: [RV32D,RV64D]}
+  - FMAXD     :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'001 , func7: 7'b0010101 } , ext: [RV32D,RV64D]}
+  - FCVTSD    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0100000 , rs2 : 5'b00001} , control : {use_rs2 : 1'b0} ,  ext: [RV32D,RV64D]}
+  - FCVTDS    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0100001 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32D,RV64D]}
+  - FEQD      :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'010 , func7: 7'b1010001 } , ext: [RV32D,RV64D]}
+  - FLTD      :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'001 , func7: 7'b1010001 } , ext: [RV32D,RV64D]}
+  - FLED      :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'000 , func7: 7'b1010001 } , ext: [RV32D,RV64D]}
+  - FCLASSD   :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'001 , func7: 7'b1110001 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32D,RV64D]}
+  - FCVTWD    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1100001 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32D,RV64D]}
+  - FCVTWUD   :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1100001 , rs2 : 5'b00001} , control : {use_rs2 : 1'b0} ,  ext: [RV32D,RV64D]}
+  - FCVTDW    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1101001 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32D,RV64D]}
+  - FCVTDWU   :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1101001 , rs2 : 5'b00001} , control : {use_rs2 : 1'b0} ,  ext: [RV32D,RV64D]}
+  #RV64D
+  - FCVTLD    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1100001 , rs2 : 5'b00010} , control : {use_rs2 : 1'b0} ,  ext: [RV64D]}
+  - FCVTLUD   :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1100001 , rs2 : 5'b00011} , control : {use_rs2 : 1'b0} ,  ext: [RV64D]}
+  - FMVXD     :    {format: R,  opcodes: {opcode: 7'b1010011 , func3 : 3'b000, func7: 7'b1110001 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV64D]}
+  - FCVTDL    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1101001 , rs2 : 5'b00010} , control : {use_rs2 : 1'b0} ,  ext: [RV64D]}
+  - FCVTDLU   :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1101001 , rs2 : 5'b00011} , control : {use_rs2 : 1'b0} ,  ext: [RV64D]}
+  - FMVDX     :    {format: R,  opcodes: {opcode: 7'b1010011 , func3 : 3'b000, func7: 7'b1111001 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV64D]}
+  #RV32Q
+  - FLQ       :    {format: I,  opcodes: {opcode: 7'b0000111 , func3: 3'100 } , ext: [RV32Q,RV64Q]}
+  - FSQ       :    {format: S,  opcodes: {opcode: 7'b0100111 , func3: 3'100 } , ext: [RV32Q,RV64Q]}
+  - FMADDQ    :    {format: R4, opcodes: {opcode: 7'b1000011 , func7: "7'b?????11" } , ext: [RV32Q,RV64Q]}
+  - FMSUBQ    :    {format: R4, opcodes: {opcode: 7'b1000111 , func7: "7'b?????11" } , ext: [RV32Q,RV64Q]}
+  - FNMSUBQ   :    {format: R4, opcodes: {opcode: 7'b1001011 , func7: "7'b?????11" } , ext: [RV32Q,RV64Q]}
+  - FNMADDQ   :    {format: R4, opcodes: {opcode: 7'b1001111 , func7: "7'b?????11" } , ext: [RV32Q,RV64Q]}
+  - FADDQ     :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0000011 } , ext: [RV32Q,RV64Q]}
+  - FSUBQ     :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0000111 } , ext: [RV32Q,RV64Q]}
+  - FMULQ     :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0001011 } , ext: [RV32Q,RV64Q]}
+  - FDIVQ     :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0001111 } , ext: [RV32Q,RV64Q]}
+  - FSQRTQ    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0101111 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32Q,RV64Q]}
+  - FSGNJQ    :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'000 , func7: 7'b0010011 } , ext: [RV32Q,RV64Q]}
+  - FSGNJNQ   :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'001 , func7: 7'b0010011 } , ext: [RV32Q,RV64Q]}
+  - FSGNJXQ   :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'010 , func7: 7'b0010011 } , ext: [RV32Q,RV64Q]}
+  - FMINQ     :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'000 , func7: 7'b0010111 } , ext: [RV32Q,RV64Q]}
+  - FMAXQ     :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'001 , func7: 7'b0010111 } , ext: [RV32Q,RV64Q]}
+  - FCVTSQ    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0100000 , rs2 : 5'b00011} , control : {use_rs2 : 1'b0} ,  ext: [RV32Q,RV64Q]}
+  - FCVTQS    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0100011 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32Q,RV64Q]}
+  - FCVTDQ    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0100001 , rs2 : 5'b00011} , control : {use_rs2 : 1'b0} ,  ext: [RV32Q,RV64Q]}
+  - FCVTQD    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0100011 , rs2 : 5'b00001} , control : {use_rs2 : 1'b0} ,  ext: [RV32Q,RV64Q]}
+  - FEQQ      :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'010 , func7: 7'b1010011 } , ext: [RV32Q,RV64Q]}
+  - FLTQ      :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'001 , func7: 7'b1010011 } , ext: [RV32Q,RV64Q]}
+  - FLEQ      :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'000 , func7: 7'b1010011 } , ext: [RV32Q,RV64Q]}
+  - FCLASSQ   :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'001 , func7: 7'b1110011 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32Q,RV64Q]}
+  - FCVTWQ    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1100011 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32Q,RV64Q]}
+  - FCVTWUQ   :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1100011 , rs2 : 5'b00001} , control : {use_rs2 : 1'b0} ,  ext: [RV32Q,RV64Q]}
+  - FCVTQW    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1101011 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32Q,RV64Q]}
+  - FCVTQWU   :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1101011 , rs2 : 5'b00001} , control : {use_rs2 : 1'b0} ,  ext: [RV32Q,RV64Q]}
+  #RV64Q
+  - FCVTLQ    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1100011 , rs2 : 5'b00010} , control : {use_rs2 : 1'b0} ,  ext: [RV64Q]}
+  - FCVTLUQ   :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1100011 , rs2 : 5'b00011} , control : {use_rs2 : 1'b0} ,  ext: [RV64Q]}
+  - FCVTQL    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1101011 , rs2 : 5'b00010} , control : {use_rs2 : 1'b0} ,  ext: [RV64Q]}
+  - FCVTQLU   :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1101011 , rs2 : 5'b00011} , control : {use_rs2 : 1'b0} ,  ext: [RV64Q]}
+  #RV32Zfh
+  - FLH       :    {format: I,  opcodes: {opcode: 7'b0000111 , func3: 3'001 } , ext: [RV32Zfh,RV64Zfh]}
+  - FSH       :    {format: S,  opcodes: {opcode: 7'b0100111 , func3: 3'001 } , ext: [RV32Zfh,RV64Zfh]}
+  - FMADDH    :    {format: R4, opcodes: {opcode: 7'b1000011 , func7: "7'b?????10" } , ext: [RV32Zfh,RV64Zfh]}
+  - FMSUBH    :    {format: R4, opcodes: {opcode: 7'b1000111 , func7: "7'b?????10" } , ext: [RV32Zfh,RV64Zfh]}
+  - FNMSUBH   :    {format: R4, opcodes: {opcode: 7'b1001011 , func7: "7'b?????10" } , ext: [RV32Zfh,RV64Zfh]}
+  - FNMADDH   :    {format: R4, opcodes: {opcode: 7'b1001111 , func7: "7'b?????10" } , ext: [RV32Zfh,RV64Zfh]}
+  - FADDH     :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0000010 } , ext: [RV32Zfh,RV64Zfh]}
+  - FSUBH     :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0000110 } , ext: [RV32Zfh,RV64Zfh]}
+  - FMULH     :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0001010 } , ext: [RV32Zfh,RV64Zfh]}
+  - FDIVH     :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0001110 } , ext: [RV32Zfh,RV64Zfh]}
+  - FSQRTH    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0101110 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32Zfh,RV64Zfh]}
+  - FSGNJH    :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'000 , func7: 7'b0010010 } , ext: [RV32Zfh,RV64Zfh]}
+  - FSGNJNH   :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'001 , func7: 7'b0010010 } , ext: [RV32Zfh,RV64Zfh]}
+  - FSGNJXH   :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'010 , func7: 7'b0010010 } , ext: [RV32Zfh,RV64Zfh]}
+  - FMINH     :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'000 , func7: 7'b0010110 } , ext: [RV32Zfh,RV64Zfh]}
+  - FMAXH     :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'001 , func7: 7'b0010110 } , ext: [RV32Zfh,RV64Zfh]}
+  - FCVTSH    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0100000 , rs2 : 5'b00010} , control : {use_rs2 : 1'b0} ,  ext: [RV32Zfh,RV64Zfh]}
+  - FCVTDH    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0100001 , rs2 : 5'b00010} , control : {use_rs2 : 1'b0} ,  ext: [RV32Zfh,RV64Zfh]}
+  - FCVTQH    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0100011 , rs2 : 5'b00010} , control : {use_rs2 : 1'b0} ,  ext: [RV32Zfh,RV64Zfh]}
+  - FCVTHS    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0100010 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32Zfh,RV64Zfh]}
+  - FCVTHD    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0100010 , rs2 : 5'b00001} , control : {use_rs2 : 1'b0} ,  ext: [RV32Zfh,RV64Zfh]}
+  - FCVTHQ    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b0100010 , rs2 : 5'b00011} , control : {use_rs2 : 1'b0} ,  ext: [RV32Zfh,RV64Zfh]}
+  - FMVXH     :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'000 , func7: 7'b1110010 , rs2 : 5'b00000 } , control : {use_rs2 : 1'b0} ,  ext: [RV32Zfh,RV64Zfh]}
+  - FEQH      :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'010 , func7: 7'b1010010 } , ext: [RV32Zfh,RV64Zfh]}
+  - FLTH      :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'001 , func7: 7'b1010010 } , ext: [RV32Zfh,RV64Zfh]}
+  - FLEH      :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'000 , func7: 7'b1010010 } , ext: [RV32Zfh,RV64Zfh]}
+  - FCLASSH   :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'001 , func7: 7'b1110010 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32Zfh,RV64Zfh]}
+  - FCVTWH    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1100010 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32Zfh,RV64Zfh]}
+  - FCVTWUH   :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1100010 , rs2 : 5'b00001} , control : {use_rs2 : 1'b0} ,  ext: [RV32Zfh,RV64Zfh]}
+  - FCVTHW    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1101010 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32Zfh,RV64Zfh]}
+  - FCVTHWU   :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1101010 , rs2 : 5'b00001} , control : {use_rs2 : 1'b0} ,  ext: [RV32Zfh,RV64Zfh]}
+  - FMVHX     :    {format: R,  opcodes: {opcode: 7'b1010011 , func3: 3'000 , func7: 7'b1111010 , rs2 : 5'b00000} , control : {use_rs2 : 1'b0} ,  ext: [RV32Zfh,RV64Zfh]}
+  #RV64Zfh
+  - FCVTLS    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1100010 , rs2 : 5'b00010} , control : {use_rs2 : 1'b0} ,  ext: [RV64Zfh]}
+  - FCVTLUS   :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1100010 , rs2 : 5'b00011} , control : {use_rs2 : 1'b0} ,  ext: [RV64Zfh]}
+  - FCVTSL    :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1101010 , rs2 : 5'b00010} , control : {use_rs2 : 1'b0} ,  ext: [RV64Zfh]}
+  - FCVTSLU   :    {format: R,  opcodes: {opcode: 7'b1010011 , func7: 7'b1101010 , rs2 : 5'b00011} , control : {use_rs2 : 1'b0} ,  ext: [RV64Zfh]}
